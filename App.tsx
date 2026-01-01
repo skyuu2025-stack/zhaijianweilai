@@ -1,12 +1,11 @@
-
 import React, { useState } from 'react';
-import { AppTab, UserStatus } from './types';
-import HomeView from './components/HomeView';
-import ChatView from './components/ChatView';
-import ToolsView from './components/ToolsView';
-import HabitsView from './components/HabitsView';
-import AssetsView from './components/AssetsView';
-import SubscriptionView from './components/SubscriptionView';
+import { AppTab, UserStatus } from './types.ts';
+import HomeView from './components/HomeView.tsx';
+import ChatView from './components/ChatView.tsx';
+import ToolsView from './components/ToolsView.tsx';
+import HabitsView from './components/HabitsView.tsx';
+import AssetsView from './components/AssetsView.tsx';
+import SubscriptionView from './components/SubscriptionView.tsx';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppTab>(AppTab.HOME);
