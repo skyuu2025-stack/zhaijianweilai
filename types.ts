@@ -18,20 +18,23 @@ export enum AppTab {
   TOOLS = 'tools',
   HABITS = 'habits',
   ASSETS = 'assets',
-  PRO = 'pro'
+  PRO = 'pro',
+  DIARY = 'diary'
 }
 
 export interface FinancialItem {
   id: string;
   name: string;
   value: number;
-  type: 'asset' | 'liability';
+  type: 'asset' | 'liability' | 'income';
 }
 
-export interface DebtPitfall {
-  title: string;
-  description: string;
-  dangerLevel: 'high' | 'medium';
+export interface DiaryEntry {
+  id: string;
+  mood: string; // emoji or code
+  content: string;
+  timestamp: number;
+  aiResponse?: string;
 }
 
 export interface HabitItem {

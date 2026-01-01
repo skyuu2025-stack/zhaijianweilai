@@ -1,11 +1,12 @@
+
 import React, { useState } from 'react';
 import { AppTab, UserStatus } from './types.ts';
 import HomeView from './components/HomeView.tsx';
 import ChatView from './components/ChatView.tsx';
 import ToolsView from './components/ToolsView.tsx';
-import HabitsView from './components/HabitsView.tsx';
 import AssetsView from './components/AssetsView.tsx';
 import SubscriptionView from './components/SubscriptionView.tsx';
+import DiaryView from './components/DiaryView.tsx';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppTab>(AppTab.HOME);
@@ -21,8 +22,8 @@ const App: React.FC = () => {
       case AppTab.HOME: return <HomeView onStartChat={() => setActiveTab(AppTab.CHAT)} isPro={userStatus.isPro} />;
       case AppTab.CHAT: return <ChatView isPro={userStatus.isPro} onNavigateToPro={() => setActiveTab(AppTab.PRO)} />;
       case AppTab.TOOLS: return <ToolsView isPro={userStatus.isPro} />;
-      case AppTab.HABITS: return <HabitsView />;
       case AppTab.ASSETS: return <AssetsView />;
+      case AppTab.DIARY: return <DiaryView />;
       case AppTab.PRO: return <SubscriptionView onSubscribe={handleSubscribe} />;
       default: return <HomeView onStartChat={() => setActiveTab(AppTab.CHAT)} isPro={userStatus.isPro} />;
     }
@@ -46,7 +47,7 @@ const App: React.FC = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
             </span>
-            <span className="text-[9px] text-emerald-600 font-medium uppercase tracking-tighter">AES-256 加密连接已开启</span>
+            <span className="text-[9px] text-emerald-600 font-medium uppercase tracking-tighter">隐私加密通道已连接</span>
           </div>
         </div>
         <button 
@@ -57,7 +58,7 @@ const App: React.FC = () => {
             : 'bg-blue-600 text-white shadow-md active:scale-95'
           }`}
         >
-          {userStatus.isPro ? '会员权益' : '升级专业版'}
+          {userStatus.isPro ? '专业特权' : '升级 Pro'}
         </button>
       </header>
 
@@ -67,7 +68,7 @@ const App: React.FC = () => {
       </main>
 
       {/* Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto glass-morphism border-t border-slate-200 px-4 py-3 flex justify-between items-center z-20">
+      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto glass-morphism border-t border-slate-200 px-2 py-3 flex justify-between items-center z-20">
         <NavButton 
           active={activeTab === AppTab.HOME} 
           onClick={() => setActiveTab(AppTab.HOME)} 
@@ -81,6 +82,12 @@ const App: React.FC = () => {
           label="树洞"
         />
         <NavButton 
+          active={activeTab === AppTab.DIARY} 
+          onClick={() => setActiveTab(AppTab.DIARY)} 
+          icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>}
+          label="自愈"
+        />
+        <NavButton 
           active={activeTab === AppTab.ASSETS} 
           onClick={() => setActiveTab(AppTab.ASSETS)} 
           icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
@@ -92,21 +99,15 @@ const App: React.FC = () => {
           icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>}
           label="工具"
         />
-        <NavButton 
-          active={activeTab === AppTab.HABITS} 
-          onClick={() => setActiveTab(AppTab.HABITS)} 
-          icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>}
-          label="习惯"
-        />
       </nav>
     </div>
   );
 };
 
 const NavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string }> = ({ active, onClick, icon, label }) => (
-  <button onClick={onClick} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${active ? 'text-blue-600' : 'text-slate-400'}`}>
+  <button onClick={onClick} className={`flex flex-col items-center gap-1 transition-all duration-300 flex-1 ${active ? 'text-blue-600 scale-110' : 'text-slate-400'}`}>
     {icon}
-    <span className="text-[10px] font-medium">{label}</span>
+    <span className="text-[10px] font-bold">{label}</span>
   </button>
 );
 

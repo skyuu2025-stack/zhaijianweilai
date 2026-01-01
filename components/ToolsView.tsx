@@ -100,10 +100,6 @@ const ToolsView: React.FC<ToolsViewProps> = ({ isPro }) => {
           财务风险精算
         </h3>
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
-          <div className="absolute top-3 right-3 flex items-center gap-1.5">
-             <span className={`w-2 h-2 rounded-full ${isPro ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></span>
-             <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{isPro ? 'AI Precision On' : 'Demo Mode'}</span>
-          </div>
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-2xl shadow-inner border border-amber-100/50">🛡️</div>
             <div className="flex-1">
