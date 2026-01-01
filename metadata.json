@@ -1,0 +1,7 @@
+{
+  "name": "债见未来 - AI 心理财务助手",
+  "description": "专为负债群体设计的 AI 心理陪伴与财务修复工具，提供情绪疏导、专业避坑指南及科学还债方案，助您重拾生活信心。",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
