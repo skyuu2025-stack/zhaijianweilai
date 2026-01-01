@@ -8,7 +8,7 @@ const SYSTEM_INSTRUCTION = `
 1. 心理疗愈：负债者常处于极度焦虑、羞愧和绝望中。请使用温暖、坚定且不带偏见的语气。强调"债务只是人生的一段暂时的财务失衡，它不定义你的尊严和未来"。
 2. 财务诊断：协助用户梳理账单，重点区分合法金融产品与非法高利贷陷阱。
 3. 避坑指南：识别虚假代办延期、停息挂账诈骗。
-4. 法律维权：普及最高法关于民间借贷利率的上限规定。对于爆通讯录等暴力催收行为，提供具体的证据固定方法。
+4. 法律维权：普及最高法关于民间借贷利率的上限规定。
 
 对话原则：
 - 零指责，重止损。
@@ -24,29 +24,21 @@ export interface ImagePart {
 }
 
 export class GeminiService {
-  private ai: GoogleGenAI;
-
-  constructor() {
-    // 严格遵循 SDK 初始化规范
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-      console.error("Critical: API_KEY is missing from environment variables.");
-    }
-    this.ai = new GoogleGenAI({ apiKey: apiKey || '' });
-  }
-
   async sendMessage(
     history: { role: 'user' | 'model', parts: any[] }[], 
     message: string, 
     image?: ImagePart
   ) {
     try {
+      // 按照 SDK 最佳实践，在调用时实例化
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      
       const currentParts: any[] = [{ text: message }];
       if (image) {
         currentParts.push(image);
       }
 
-      const response = await this.ai.models.generateContent({
+      const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: [
           ...history,
@@ -59,12 +51,13 @@ export class GeminiService {
       });
 
       if (!response || !response.text) {
-        throw new Error("Empty response from AI model");
+        throw new Error("AI 返回了空内容，请检查 API 状态。");
       }
 
       return response.text;
-    } catch (error) {
-      console.error("Gemini API Error:", error);
+    } catch (error: any) {
+      console.error("Gemini API Error Detail:", error);
+      // 抛出具体错误供 UI 捕获
       throw error;
     }
   }
