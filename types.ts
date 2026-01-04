@@ -7,46 +7,43 @@ export interface Message {
     data: string;
     mimeType: string;
   };
+  sources?: { uri: string; title: string }[];
   timestamp: number;
-  replyToId?: string;
-  replyToContent?: string;
 }
 
 export enum AppTab {
   HOME = 'home',
   CHAT = 'chat',
-  TOOLS = 'tools',
-  HABITS = 'habits',
+  HEAL = 'heal',
   ASSETS = 'assets',
-  PRO = 'pro',
-  DIARY = 'diary'
+  TOOLS = 'tools',
+  PRO = 'pro'
 }
 
 export interface FinancialItem {
   id: string;
   name: string;
   value: number;
-  type: 'asset' | 'liability' | 'income';
+  type: 'asset' | 'liability' | 'income' | 'expense';
+  interestRate?: number; // 年利率 %
 }
 
 export interface DiaryEntry {
   id: string;
-  mood: string; // emoji or code
+  mood: string;
   content: string;
   timestamp: number;
   aiResponse?: string;
+}
+
+export interface UserStatus {
+  isPro: boolean;
+  tier?: string;
+  referralCount: number; // 裂变分享计数
 }
 
 export interface HabitItem {
   id: string;
   task: string;
   completed: boolean;
-}
-
-export type SubscriptionTier = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
-
-export interface UserStatus {
-  isPro: boolean;
-  tier?: SubscriptionTier;
-  expiresAt?: number;
 }

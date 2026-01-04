@@ -1,280 +1,151 @@
 
 import React, { useState } from 'react';
+import { UserStatus } from '../types.ts';
 
 interface HomeViewProps {
   onStartChat: () => void;
-  isPro?: boolean;
+  userStatus: UserStatus;
+  onShare: () => void;
 }
 
-const HomeView: React.FC<HomeViewProps> = ({ onStartChat, isPro }) => {
-  const knowledgeItems = [
-    {
-      title: "复利陷阱",
-      icon: "🪤",
-      summary: "为什么债务会越还越多？",
-      details: "许多网贷产品虽然标榜‘日息万分之几’，但采用的是复利计息（利滚利）。一旦逾期，罚息和复利会导致债务呈指数级增长。看清真实的‘年化利率’是避坑的第一步。"
-    },
-    {
-      title: "情绪化消费",
-      icon: "🎢",
-      summary: "压力越大，越想花钱？",
-      details: "这种现象被称为‘报复性消费’，是大脑试图通过即时满足来缓解焦虑的本能。建议在下单前强迫自己等待24小时，或用运动、冥想等零成本方式替代购物的多巴胺反馈。"
-    },
-    {
-      title: "隐形负债",
-      icon: "🧊",
-      summary: "那些被忽略的小额分期。",
-      details: "花呗、白条等产品的分期手续费往往折合年化超过12%-18%。这些‘无感’的支出日积月累，会严重挤压你的现金流。建议每月固定一天进行‘财务清扫’，关闭不必要的分期。"
-    }
-  ];
+interface CaseStudy {
+  id: string;
+  tag: string;
+  title: string;
+  shortDesc: string;
+  logic: {
+    steps: string[];
+    legalBasis: string;
+    proTip: string;
+  };
+}
 
-  const stories = [
-    {
-      id: 1,
-      title: "张哥的'代办延期'噩梦",
-      tag: "骗局警示",
-      preview: "为了延期还款，我把最后的3000元交给了所谓的中介...",
-      full: "张哥在极度焦虑下相信了某短视频平台的‘专业停息挂账’中介。中介索要了3000元代办费，并要求接管其手机号。结果中介直接拉黑消失，而张哥的债务因为这一个月的断联导致了全面爆发。结论：银行沟通必须亲自进行，不要相信任何收费代办。"
-    },
-    {
-      id: 2,
-      title: "小美的'美容贷'连环套",
-      tag: "消费避坑",
-      preview: "原本只想做个299的美容，最后背上了5万的贷款。",
-      full: "小美被美容院引导签署了一份‘分期付款协议’，却不知那是高息医美贷。更可怕的是，美容院倒闭后，贷款依然要还。结论：任何需要签署借贷协议的预消费都要极度慎重，看清债权方是谁。"
-    },
-    {
-      id: 3,
-      title: "老王的'雪球式'重生",
-      tag: "正向激励",
-      preview: "从欠款50万到第一笔本金结清，我只用了这一个方法。",
-      full: "老王停止了所有‘以贷养贷’，跟家人坦白并争取到了宽限。他采用了‘债务滚雪球法’，从额度最小的债务开始全力偿还。虽然过程痛苦，但每一笔结清证明都给了他活下去的勇气。结论：坦白和停止借款是上岸的唯一起点。"
-    }
-  ];
+const HomeView: React.FC<HomeViewProps> = ({ onStartChat, userStatus, onShare }) => {
+  const [showShareToast, setShowShareToast] = useState(false);
+  const [activeCase, setActiveCase] = useState<CaseStudy | null>(null);
 
-  return (
-    <div className="space-y-6 pb-6">
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute top-2 right-2 bg-white/20 px-2 py-0.5 rounded-full flex items-center gap-1">
-          <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" /></svg>
-          <span className="text-[8px] font-bold">100% 隐私脱敏</span>
-        </div>
-        <h2 className="text-2xl font-bold mb-2">别害怕，我们都在。</h2>
-        <p className="opacity-90 text-sm leading-relaxed mb-4">
-          在中国，有超过11亿人面临着债务压力。你不是孤身一人，在这里，我们只谈解决办法，且您的隐私受到最高级别保护。
-        </p>
-        <button 
-          onClick={onStartChat}
-          className="bg-white text-blue-700 px-6 py-2 rounded-full font-bold shadow-sm hover:bg-blue-50 transition-all active:scale-95"
-        >
-          立即开启加密对话
-        </button>
-      </div>
+  const handleShare = async () => {
+    const currentUrl = window.location.href.startsWith('http') ? window.location.href : 'https://zhaice.app';
+    const shareData = {
+      title: '债策 - 心理陪伴与加密破局',
+      text: '我在这里找到了久违的平静，推荐给正在泥潭中挣扎的你。',
+      url: currentUrl,
+    };
 
-      <section>
-        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-          <span className="w-1 h-5 bg-blue-600 rounded-full"></span>
-          安全与隐私实验室
-        </h3>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center text-center gap-1">
-            <div className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-            </div>
-            <span className="text-[10px] font-bold text-slate-800">本地沙盒存储</span>
-            <span className="text-[8px] text-slate-500">敏感资产数据永不离机</span>
-          </div>
-          <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center text-center gap-1">
-            <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-            </div>
-            <span className="text-[10px] font-bold text-slate-800">端到端加密</span>
-            <span className="text-[8px] text-slate-500">会话链路全程AES加密</span>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-          <span className="w-1 h-5 bg-blue-600 rounded-full"></span>
-          真实故事
-        </h3>
-        <div className="flex gap-4 overflow-x-auto pb-4 px-1 scroll-hide">
-          {stories.map(story => (
-            <StoryCard key={story.id} {...story} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-          <span className="w-1 h-5 bg-blue-600 rounded-full"></span>
-          核心知识
-        </h3>
-        <div className="space-y-3">
-          {knowledgeItems.map((item, index) => (
-            <KnowledgeCard key={index} {...item} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-          <span className="w-1 h-5 bg-blue-600 rounded-full"></span>
-          今日避坑指南
-        </h3>
-        <div className="grid grid-cols-1 gap-3">
-          <PitfallCard 
-            title="警惕'中介延期'骗局" 
-            desc="声称100%成功停息挂账，收取代办费后跑路。"
-            tag="高危"
-          />
-          <PitfallCard 
-            title="不要触碰'714高射炮'" 
-            desc="极高周息，借2000到手1400，7天即滚倍。"
-            tag="致命"
-          />
-        </div>
-      </section>
-
-      <section>
-        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-          <span className="w-1 h-5 bg-blue-600 rounded-full"></span>
-          心理建设
-        </h3>
-        <div className="bg-white p-4 rounded-xl border border-slate-200 italic text-slate-600 text-sm shadow-sm">
-          "债务只是人生的一段暂时的财务失衡，它不定义你的尊严和未来。今天的每一个小步，都是通往自由的一大步。"
-        </div>
-      </section>
-    </div>
-  );
-};
-
-const StoryCard: React.FC<{ title: string, tag: string, preview: string, full: string }> = ({ title, tag, preview, full }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div 
-      className={`flex-shrink-0 w-72 p-4 rounded-xl border transition-all duration-300 cursor-pointer ${isOpen ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200 shadow-sm'}`}
-      onClick={() => setIsOpen(!isOpen)}
-    >
-      <div className="flex justify-between items-start mb-2">
-        <span className={`text-[10px] px-2 py-0.5 rounded-full ${tag === '正向激励' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {tag}
-        </span>
-      </div>
-      <h4 className="font-bold text-slate-800 text-sm mb-2">{title}</h4>
-      <p className="text-xs text-slate-600 leading-relaxed italic mb-3">
-        "{isOpen ? full : preview}"
-      </p>
-      <div className="flex justify-center">
-        <span className="text-[10px] text-blue-600 font-medium">
-          {isOpen ? "点击收起" : "点击查看教训"}
-        </span>
-      </div>
-    </div>
-  );
-};
-
-const KnowledgeCard: React.FC<{ title: string, icon: string, summary: string, details: string }> = ({ title, icon, summary, details }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  return (
-    <div 
-      className={`bg-white rounded-xl border transition-all duration-300 overflow-hidden cursor-pointer ${isExpanded ? 'border-blue-400 ring-1 ring-blue-100' : 'border-slate-200 hover:border-blue-200 shadow-sm'}`}
-      onClick={() => setIsExpanded(!isExpanded)}
-    >
-      <div className="p-4 flex items-center gap-3">
-        <div className="text-2xl bg-slate-50 w-10 h-10 flex items-center justify-center rounded-lg">
-          {icon}
-        </div>
-        <div className="flex-1">
-          <h4 className="font-bold text-slate-800 text-sm">{title}</h4>
-          <p className="text-xs text-slate-500">{summary}</p>
-        </div>
-        <svg 
-          className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </div>
-      {isExpanded && (
-        <div className="px-4 pb-4 animate-fadeIn">
-          <div className="h-px bg-slate-100 mb-3" />
-          <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
-            {details}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const PitfallCard: React.FC<{ title: string, desc: string, tag: string }> = ({ title, desc, tag }) => {
-  const [copied, setCopied] = useState(false);
-
-  const handleShare = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const shareText = `【债见未来避坑指南】\n${title}\n${desc}\n提醒身边人，远离财务陷阱！`;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: '避坑指南',
-          text: shareText,
-        });
-      } catch (err) {
-        console.error('Share failed:', err);
-        fallbackCopy(shareText);
+    try {
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        onShare();
+      } else {
+        throw new Error('Share not supported');
       }
-    } else {
-      fallbackCopy(shareText);
+    } catch (err) {
+      const textToCopy = `${shareData.text} 链接：${shareData.url}`;
+      await navigator.clipboard.writeText(textToCopy);
+      setShowShareToast(true);
+      onShare();
+      setTimeout(() => setShowShareToast(false), 3000);
     }
   };
 
-  const fallbackCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const CASE_STUDIES: CaseStudy[] = [
+    { 
+      id: 'zhang', tag: '破局实战', title: '张哥：从绝望到体面', shortDesc: '面对 714 高利贷，从准备轻生到法律反制...',
+      logic: {
+        steps: ['心理重建', '信息加密', '法律隔离', '主动坦白'],
+        legalBasis: '《民法典》第670条。',
+        proTip: '坏账不是人生的污点。'
+      }
+    },
+    { 
+      id: 'li', tag: '陪伴上岸', title: '小李：不再孤单的 60 期', shortDesc: '五个银行的压力，在 AI 陪伴下逐一协商...',
+      logic: {
+        steps: ['策略拟定', '话术模拟', '情绪支持', '协议落地'],
+        legalBasis: '《信用卡业务监督管理办法》第70条。',
+        proTip: '不要害怕电话。'
+      }
+    }
+  ];
+
+  const progress = (userStatus.referralCount / 3) * 100;
 
   return (
-    <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col gap-1 shadow-sm hover:border-blue-200 transition-colors relative group">
-      <div className="flex justify-between items-start">
-        <div className="flex flex-col flex-1 pr-8">
-          <span className="font-bold text-slate-800">{title}</span>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className={`text-[10px] px-2 py-0.5 rounded ${tag === '致命' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'}`}>
-              {tag}
-            </span>
-          </div>
-        </div>
-        <button 
-          onClick={handleShare}
-          className={`p-2 rounded-full transition-all active:scale-90 ${copied ? 'bg-green-100 text-green-600' : 'bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50'}`}
-          title="分享此避坑指南"
-        >
-          {copied ? (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-            </svg>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
-          )}
-        </button>
-      </div>
-      <p className="text-xs text-slate-500 mt-1 leading-relaxed">{desc}</p>
-      
-      {copied && (
-        <div className="absolute top-2 right-12 text-[10px] bg-green-600 text-white px-2 py-1 rounded animate-fadeIn shadow-sm">
-          已复制文本
+    <div className="space-y-8 pb-40 animate-fadeIn relative">
+      {showShareToast && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-indigo-600 text-white px-6 py-3 rounded-full font-black shadow-2xl flex items-center gap-2 animate-bounce">
+          <span>🔗 专属邀请已加密复制</span>
         </div>
       )}
+
+      {/* 核心卡片 */}
+      <div className="bg-[#0f172a]/80 border border-white/5 rounded-[48px] p-10 text-white shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] animate-sacred-rotate"></div>
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-5 py-2 bg-indigo-500/20 rounded-full mb-8 border border-white/10">
+             <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse"></div>
+             <span className="text-[11px] font-black tracking-widest uppercase text-indigo-200">11.7 亿同伴的心理避风港</span>
+          </div>
+          <h2 className="text-[34px] font-black mb-6 tracking-tighter leading-[1.1]">至暗时刻，<br/>给你最隐秘的陪伴。</h2>
+          <p className="opacity-50 text-[13px] leading-relaxed mb-12 font-medium">
+            债策：主打“心理陪伴”与“加密破局”的 AI 助手。只在黑暗中提灯。
+          </p>
+          <button onClick={onStartChat} className="bg-indigo-600 text-white px-10 py-5 rounded-[24px] font-black text-sm w-full shadow-[0_15px_35px_rgba(79,70,229,0.3)] active:scale-95 transition-all">开启 1V1 加密深度陪伴</button>
+        </div>
+      </div>
+
+      <div className={`relative group animate-fadeIn`}>
+        <div 
+          onClick={handleShare}
+          className={`relative glass-morphism border ${userStatus.isPro ? 'border-emerald-500/30' : 'border-indigo-500/20'} rounded-[40px] p-8 space-y-6 shadow-2xl cursor-pointer active:scale-[0.98] transition-all duration-500`}
+        >
+          <div className="flex justify-between items-center">
+             <div className="flex items-center gap-3">
+                <div className="relative">
+                   <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-inner ${userStatus.isPro ? 'bg-emerald-500/20' : 'bg-indigo-500/20'}`}>
+                    {userStatus.isPro ? '🌟' : '🤲'}
+                   </div>
+                   {!userStatus.isPro && (
+                     <div className="absolute -top-3 -right-3 bg-amber-500 text-white text-[8px] font-black px-2 py-1 rounded-md shadow-lg animate-labelJump border border-white/20 whitespace-nowrap shine-effect">
+                       FREE
+                     </div>
+                   )}
+                </div>
+                <div>
+                   <h4 className="font-black text-white text-lg tracking-tight">
+                     {userStatus.isPro ? '专家权益已激活' : '寻找共鸣伙伴'}
+                   </h4>
+                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                     {userStatus.isPro ? '感谢您的信任' : '转发 3 人 · 免费使用 7 天'}
+                   </p>
+                </div>
+             </div>
+          </div>
+
+          {!userStatus.isPro && (
+            <div className="space-y-3">
+              <div className="h-3 bg-white/5 rounded-full overflow-hidden border border-white/5 p-1">
+                 <div className="h-full bg-indigo-500 rounded-full transition-all duration-1000" style={{ width: `${progress}%` }}></div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <section className="space-y-6">
+        <h3 className="font-black text-slate-400 text-[11px] flex items-center gap-3 px-3 uppercase tracking-[0.3em] opacity-80">
+          <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>
+          陪伴见证 · 破局重生
+        </h3>
+        <div className="flex gap-5 overflow-x-auto scroll-hide px-1 pb-4 snap-x snap-mandatory">
+          {CASE_STUDIES.map(cs => (
+            <div key={cs.id} className="bg-[#0f172a]/80 border border-white/5 p-8 rounded-[44px] min-w-[280px] snap-center flex flex-col gap-6 shadow-xl active:scale-[0.99] cursor-pointer">
+              <div className="bg-[#1e293b] self-start px-5 py-2 rounded-full text-[10px] font-black text-slate-400 uppercase tracking-widest">{cs.tag}</div>
+              <h4 className="text-xl font-black text-white">{cs.title}</h4>
+              <p className="text-[13px] text-slate-500 leading-relaxed font-medium opacity-70 line-clamp-2">{cs.shortDesc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };

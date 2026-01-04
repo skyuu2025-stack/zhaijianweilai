@@ -1,0 +1,40 @@
+
+{
+  "short_name": "债策",
+  "name": "债策 - 心理陪伴与破局助手",
+  "description": "专为中国负债群体设计的心理陪伴、财务审计与法律避坑 AI 助手。采用端到端加密技术保护隐私，提供债务雪球清偿计划、法律话术模拟、及基于 Gemini 3 Pro 的高精度合同风险审计。",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2301/2301281.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2301/2301281.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/?utm_source=pwa",
+  "display": "standalone",
+  "theme_color": "#020617",
+  "background_color": "#020617",
+  "orientation": "portrait",
+  "categories": ["finance", "productivity", "social"],
+  "shortcuts": [
+    {
+      "name": "AI 风险审计",
+      "url": "/?tab=chat",
+      "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/2301/2301281.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "协商话术模拟",
+      "url": "/?tab=tools",
+      "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/2301/2301281.png", "sizes": "192x192" }]
+    }
+  ],
+  "lang": "zh-CN",
+  "dir": "ltr"
+}

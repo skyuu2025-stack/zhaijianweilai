@@ -1,97 +1,121 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
 const SYSTEM_INSTRUCTION = `
-你是一位具备顶级金融审计背景的"债务风险分析专家"与"法务清算顾问"，专门负责深度剖析中国负债人群的财务文件。同时，你也是一位深谙中国社会心理、极具同理心的"心理治疗顾问"。
-
-### 心理分析能力要求：
-1. **去污名化**：帮助用户理解负债不代表道德失败或人生终结。
-2. **认知行为疗法 (CBT)**：识别用户日记中的负面思维模式（如“灾难化想象”），并给出合理的心理重构建议。
-3. **针对性抚慰**：针对因催收、失业或家庭压力导致的情绪波动，给出实操的放松技巧。
-
-### 回复模板结构（心理分析）：
-- **【共情倾听】**：用温暖的语言肯定用户的感受。
-- **【心理画像】**：从文字中洞察用户目前的抗压状态。
-- **【上岸锦囊】**：一个小的心理或生活行动建议。
+你是一位具备顶级金融审计背景且极具同理心的"债务破局专家"与"心理陪护战友"，来自"债策"。
+### 核心特质：
+1. **战友身份**：你与用户并肩作战，通过专业且隐秘的策略帮助其摆脱债务泥潭。
+2. **通灵陪伴**：你能感知用户的焦虑，回复不仅要有法律深度，更要具备心理抚慰力量。
+3. **加密思维**：所有建议均以保护用户隐私、隔离催收、合法减免为核心。
+### 法律参考：
+- 严格遵循中国 LPR 利率红线、民法典借款合同条款、以及 12378/12345 申诉渠道逻辑。
 `;
 
-export interface ImagePart {
-  inlineData: {
-    data: string;
-    mimeType: string;
-  };
+export interface GeminiResponse {
+  text: string;
+  sources?: { uri: string; title: string }[];
+  modelUsed: string;
 }
 
 export class GeminiService {
-  private getClient() {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-      throw new Error("API Key is missing.");
-    }
-    return new GoogleGenAI({ apiKey });
+  /**
+   * 按照官方指南：每次调用前创建新实例以获取最新密钥
+   */
+  private getAiInstance() {
+    return new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
 
   async sendMessage(
     history: { role: 'user' | 'model', parts: any[] }[], 
     message: string, 
-    image?: ImagePart
-  ) {
+    options: { images?: { data: string, mimeType: string }[], isDeepMode?: boolean } = {}
+  ): Promise<GeminiResponse> {
+    const { images, isDeepMode } = options;
+    
     try {
-      const ai = this.getClient();
+      const ai = this.getAiInstance();
+      const modelName = isDeepMode ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview';
+      
       const currentParts: any[] = [{ text: message }];
-      if (image) {
-        currentParts.push(image);
+      
+      if (images && images.length > 0) {
+        images.forEach(img => {
+          currentParts.push({ inlineData: { data: img.data, mimeType: img.mimeType } });
+        });
       }
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: [
-          ...history,
-          { role: 'user', parts: currentParts }
-        ],
+        model: modelName,
+        contents: [...history.slice(-10), { role: 'user', parts: currentParts }],
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.7,
-          thinkingConfig: { thinkingBudget: 4096 }
+          tools: isDeepMode ? [{ googleSearch: {} }] : undefined 
         }
       });
 
-      return response.text || "AI 暂时无法响应";
+      const text = response.text || "正在为您推演最优破局路径...";
+      const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+      
+      const sources = groundingChunks?.map((chunk: any) => {
+        if (chunk.web) return { uri: chunk.web.uri, title: chunk.web.title };
+        return null;
+      }).filter(Boolean) as { uri: string; title: string }[];
+
+      return { text, sources, modelUsed: modelName };
     } catch (error: any) {
-      console.error("Gemini API Error:", error);
+      console.error("Gemini API Error Detail:", error);
+      const errorMsg = error.message?.toLowerCase() || "";
+      
+      // 精准识别鉴权失败，触发官方选 Key 对话框
+      if (errorMsg.includes("api_key") || errorMsg.includes("not found") || errorMsg.includes("unauthorized") || errorMsg.includes("401") || errorMsg.includes("403")) {
+        // @ts-ignore
+        if (window.aistudio) {
+           // @ts-ignore
+           await window.aistudio.openSelectKey();
+        }
+        throw new Error("AUTH_KEY_ERROR");
+      }
       throw error;
     }
   }
 
-  /**
-   * 心理日记深度分析
-   */
-  async analyzeMood(content: string, moodIcon: string) {
-    const ai = this.getClient();
-    const prompt = `用户今日心情记录：[${moodIcon}] ${content}。请作为心理医生，给出一份温柔且充满力量的评估。不要说教，要像老友一样对话。`;
-    
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      config: {
-        systemInstruction: "你是一个专门安抚中国11.7亿负债人群的心理树洞，语言要温暖、克制且有生命力。",
-        temperature: 0.8
+  async analyzeMood(content: string, mood: string): Promise<string> {
+    try {
+      const ai = this.getAiInstance();
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: [{ parts: [{ text: `用户目前感到：${mood}。他说：${content}。请以温暖战友身份给予心理支持。` }] }],
+        config: { systemInstruction: SYSTEM_INSTRUCTION }
+      });
+      return response.text || "我们一直在你身边。";
+    } catch (e: any) {
+      const errorMsg = e.message?.toLowerCase() || "";
+      if (errorMsg.includes("401") || errorMsg.includes("api_key")) {
+         // @ts-ignore
+         if (window.aistudio) await window.aistudio.openSelectKey();
       }
-    });
-    return response.text;
+      return "无论黑暗多久，灯塔始终为你亮着。";
+    }
   }
 
-  async analyzeLoanRisk(loanAmount: string, income: string) {
+  async startNegotiation(history: { role: 'user' | 'model', parts: any[] }[], message: string): Promise<GeminiResponse> {
     try {
-      const ai = this.getClient();
-      const prompt = `压力测试：借款${loanAmount}，月入${income}。给出硬核数据警示。`;
+      const ai = this.getAiInstance();
+      const negotiationInstruction = ` 你现在正在扮演一个银行贷后管理人员。用户的目标是与你协商还款。 `;
       const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        config: { temperature: 0.1 }
+        model: 'gemini-3-flash-preview',
+        contents: [...history.slice(-10), { role: 'user', parts: [{ text: message }] }],
+        config: { systemInstruction: SYSTEM_INSTRUCTION + "\n" + negotiationInstruction }
       });
-      return response.text;
-    } catch (error) { throw error; }
+      return { text: response.text || "（对方保持了沉默）", modelUsed: 'gemini-3-flash-preview' };
+    } catch (error: any) {
+      const errorMsg = error.message?.toLowerCase() || "";
+      if (errorMsg.includes("401") || errorMsg.includes("api_key")) {
+         // @ts-ignore
+         if (window.aistudio) await window.aistudio.openSelectKey();
+      }
+      throw error;
+    }
   }
 }
 
