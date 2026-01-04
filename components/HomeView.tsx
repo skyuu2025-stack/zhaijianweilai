@@ -105,7 +105,7 @@ const HomeView: React.FC<HomeViewProps> = ({ onStartChat, userStatus, onShare })
                     {userStatus.isPro ? '🌟' : '🤲'}
                    </div>
                    {!userStatus.isPro && (
-                     <div className="absolute -top-3 -right-3 bg-amber-500 text-white text-[8px] font-black px-2 py-1 rounded-md shadow-lg animate-labelJump border border-white/20 whitespace-nowrap shine-effect">
+                     <div className="absolute -top-3 -right-3 bg-[#f39c12] text-white text-[10px] font-black px-3 py-1.5 rounded-[12px] shadow-[0_8px_20px_rgba(243,156,18,0.4)] animate-labelJump border border-white/30 whitespace-nowrap shine-effect">
                        FREE
                      </div>
                    )}
