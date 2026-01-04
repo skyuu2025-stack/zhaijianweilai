@@ -10,35 +10,51 @@ import VoiceCompanionView from './components/VoiceCompanionView.tsx';
 
 /**
  * SpiritualBeacon: 极具通灵感的灯塔 LOGO
+ * 设计升级：更加几何化、深邃，象征着在财务迷雾中的指引。
  */
 const SpiritualBeacon: React.FC<{ className?: string }> = ({ className }) => (
   <div className={`relative flex items-center justify-center ${className}`}>
-    <div className="absolute inset-0 bg-indigo-600/10 rounded-full blur-[45px] animate-sacred-rotate"></div>
-    <div className="absolute inset-0 bg-cyan-400/5 rounded-full blur-[70px] animate-spiritual-breath" style={{ animationDelay: '2s' }}></div>
+    {/* 背景光晕层 */}
+    <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-[40px] animate-sacred-rotate"></div>
+    <div className="absolute inset-0 bg-cyan-400/5 rounded-full blur-[60px] animate-spiritual-breath" style={{ animationDelay: '1s' }}></div>
     
     <svg viewBox="0 0 100 100" className="w-full h-full relative z-10" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="towerGradient" x1="50%" y1="0%" x2="50%" y2="100%">
+        <linearGradient id="towerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="50%" stopColor="#818cf8" />
-          <stop offset="100%" stopColor="#312e81" />
+          <stop offset="100%" stopColor="#6366f1" />
         </linearGradient>
-        <filter id="etherealGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="4" result="blur" />
+        <linearGradient id="baseGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#4f46e5" />
+          <stop offset="100%" stopColor="#1e1b4b" />
+        </linearGradient>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3.5" result="blur" />
           <feComposite in="SourceGraphic" in2="blur" operator="over" />
         </filter>
       </defs>
-      <circle cx="50" cy="22" r="12" fill="rgba(129, 140, 248, 0.2)" className="animate-spiritual-breath">
-        <animate attributeName="r" values="10;14;10" dur="6s" repeatCount="indefinite" />
+      
+      {/* 顶部光源 */}
+      <circle cx="50" cy="28" r="16" fill="rgba(99, 102, 241, 0.15)" className="animate-pulse" />
+      <circle cx="50" cy="28" r="4" fill="white" filter="url(#glow)">
+        <animate attributeName="r" values="3.5;5;3.5" dur="3s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite" />
       </circle>
-      <path d="M50 12L42 28H58L50 12Z" fill="url(#towerGradient)" filter="url(#etherealGlow)" />
-      <rect x="45" y="30" width="10" height="8" rx="1.5" fill="white" opacity="0.8" className="animate-pulse" />
-      <path d="M46 40H54V80H46V40Z" fill="url(#towerGradient)" opacity="0.6" />
-      <path d="M38 80H62V84H38V80Z" fill="#1e1b4b" rx="1" />
-      <circle cx="50" cy="22" r="3.5" fill="white" filter="url(#etherealGlow)">
-        <animate attributeName="opacity" values="0.4;1;0.4" dur="3s" repeatCount="indefinite" />
-        <animate attributeName="r" values="3;4.5;3" dur="3s" repeatCount="indefinite" />
-      </circle>
+
+      {/* 灯塔塔尖 */}
+      <path d="M42 34H58L54 26H46L42 34Z" fill="white" />
+      
+      {/* 塔身 - 极简柱状 */}
+      <path d="M44 85L47 38H53L56 85H44Z" fill="url(#baseGrad)" />
+      
+      {/* 细节装饰 - 横向线条 */}
+      <rect x="46.5" y="45" width="7" height="1.5" fill="rgba(255,255,255,0.1)" />
+      <rect x="46" y="55" width="8" height="1.5" fill="rgba(255,255,255,0.1)" />
+      <rect x="45.5" y="65" width="9" height="1.5" fill="rgba(255,255,255,0.1)" />
+
+      {/* 底部基座 */}
+      <rect x="35" y="85" width="30" height="4" rx="2" fill="#1e1b4b" />
+      <rect x="30" y="89" width="40" height="2" rx="1" fill="#020617" />
     </svg>
   </div>
 );
