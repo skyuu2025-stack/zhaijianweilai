@@ -9,52 +9,49 @@ import SubscriptionView from './components/SubscriptionView.tsx';
 import VoiceCompanionView from './components/VoiceCompanionView.tsx';
 
 /**
- * SpiritualBeacon: 极具通灵感的灯塔 LOGO
- * 设计升级：更加几何化、深邃，象征着在财务迷雾中的指引。
+ * SpiritualBeacon: 极简通灵感灯塔 LOGO
+ * 设计灵感：在黑暗海面上的一盏孤灯，采用截图风格的深黑底色，白色塔身。
  */
 const SpiritualBeacon: React.FC<{ className?: string }> = ({ className }) => (
   <div className={`relative flex items-center justify-center ${className}`}>
-    {/* 背景光晕层 */}
-    <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-[40px] animate-sacred-rotate"></div>
-    <div className="absolute inset-0 bg-cyan-400/5 rounded-full blur-[60px] animate-spiritual-breath" style={{ animationDelay: '1s' }}></div>
+    {/* 背景深邃光晕 - 增强神圣感 */}
+    <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-[45px] animate-sacred-rotate"></div>
+    <div className="absolute inset-0 bg-cyan-400/10 rounded-full blur-[65px] animate-spiritual-breath" style={{ animationDelay: '1s' }}></div>
     
     <svg viewBox="0 0 100 100" className="w-full h-full relative z-10" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="towerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#6366f1" />
+        <linearGradient id="towerGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="white" />
+          <stop offset="100%" stopColor="#4f46e5" />
         </linearGradient>
-        <linearGradient id="baseGrad" x1="50%" y1="0%" x2="50%" y2="100%">
-          <stop offset="0%" stopColor="#4f46e5" />
-          <stop offset="100%" stopColor="#1e1b4b" />
-        </linearGradient>
-        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="3.5" result="blur" />
+        <filter id="lightGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
           <feComposite in="SourceGraphic" in2="blur" operator="over" />
         </filter>
       </defs>
       
-      {/* 顶部光源 */}
-      <circle cx="50" cy="28" r="16" fill="rgba(99, 102, 241, 0.15)" className="animate-pulse" />
-      <circle cx="50" cy="28" r="4" fill="white" filter="url(#glow)">
+      {/* 截图风格的圆角矩形背景 */}
+      <rect width="100" height="100" rx="22" fill="#020617" />
+      
+      {/* 顶部光源 - 动态脉冲效果 */}
+      <circle cx="50" cy="28" r="4" fill="white" filter="url(#lightGlow)">
         <animate attributeName="r" values="3.5;5;3.5" dur="3s" repeatCount="indefinite" />
         <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite" />
       </circle>
 
-      {/* 灯塔塔尖 */}
+      {/* 灯塔塔尖细节 */}
       <path d="M42 34H58L54 26H46L42 34Z" fill="white" />
       
       {/* 塔身 - 极简柱状 */}
-      <path d="M44 85L47 38H53L56 85H44Z" fill="url(#baseGrad)" />
+      <path d="M44 82L47 38H53L56 82H44Z" fill="url(#towerGrad)" />
       
-      {/* 细节装饰 - 横向线条 */}
-      <rect x="46.5" y="45" width="7" height="1.5" fill="rgba(255,255,255,0.1)" />
-      <rect x="46" y="55" width="8" height="1.5" fill="rgba(255,255,255,0.1)" />
-      <rect x="45.5" y="65" width="9" height="1.5" fill="rgba(255,255,255,0.1)" />
-
       {/* 底部基座 */}
-      <rect x="35" y="85" width="30" height="4" rx="2" fill="#1e1b4b" />
-      <rect x="30" y="89" width="40" height="2" rx="1" fill="#020617" />
+      <rect x="35" y="82" width="30" height="4" rx="1.5" fill="#1e1b4b" />
+
+      {/* 侧向扫过的微弱光束 (象征灯塔扫描迷雾) */}
+      <path d="M50 28L10 15V41L50 28Z" fill="white" fillOpacity="0.05">
+        <animateTransform attributeName="transform" type="rotate" from="0 50 28" to="360 50 28" dur="10s" repeatCount="indefinite" />
+      </path>
     </svg>
   </div>
 );
@@ -99,15 +96,18 @@ const App: React.FC = () => {
     return (
       <div className={`fixed inset-0 z-[9999] bg-[#020617] flex flex-col items-center justify-center transition-all duration-1000 ${bootStatus === 'exiting' ? 'opacity-0 scale-110 blur-xl' : ''}`}>
         <div className="flex flex-col items-center w-full max-w-sm px-10 text-center space-y-12">
-          <SpiritualBeacon className="w-40 h-40" />
+          <SpiritualBeacon className="w-40 h-40 animate-spiritual-breath" />
           <div className="h-16 flex items-center justify-center">
             <p key={phraseIndex} className="text-slate-400 text-[13px] font-light animate-empathy leading-relaxed italic px-6">
               “{empathyPhrases[phraseIndex]}”
             </p>
           </div>
-          <h1 className="text-4xl font-black text-white tracking-[0.4em] uppercase">
-             <span className="text-spiritual-shine">债策</span>
-          </h1>
+          <div className="space-y-1">
+            <h1 className="text-4xl font-black text-white tracking-[0.4em] uppercase">
+              <span className="text-spiritual-shine">债策</span>
+            </h1>
+            <p className="text-[8px] text-slate-600 font-bold tracking-[0.6em] uppercase">Digital Sanctuary</p>
+          </div>
         </div>
       </div>
     );
@@ -123,7 +123,7 @@ const App: React.FC = () => {
             </div>
             <div className="space-y-3">
               <h3 className="text-2xl font-black text-slate-900">最隐秘的陪伴</h3>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
                 在这里，您的故事将被灯塔照亮并完全加密。我们为您提供破局的工具与心理的支撑。
               </p>
             </div>
