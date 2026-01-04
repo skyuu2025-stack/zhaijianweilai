@@ -9,71 +9,45 @@ import SubscriptionView from './components/SubscriptionView.tsx';
 import VoiceCompanionView from './components/VoiceCompanionView.tsx';
 
 /**
- * SpiritualBeacon: 高动态灯塔 LOGO
- * 包含：旋转扫描光束、呼吸光源、流光塔身。
+ * SpiritualBeacon: 根据用户附件图片重绘的灯塔 LOGO
+ * 包含：极简白色塔身、钟形发光顶、放射状光晕。
  */
 const SpiritualBeacon: React.FC<{ className?: string }> = ({ className }) => (
   <div className={`relative flex items-center justify-center ${className}`}>
-    {/* 背景多重空灵光晕 */}
-    <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-[40px] animate-sacred-rotate"></div>
-    <div className="absolute inset-0 bg-cyan-400/10 rounded-full blur-[60px] animate-spiritual-breath" style={{ animationDelay: '1.5s' }}></div>
+    {/* 柔和的背景弥散光 */}
+    <div className="absolute inset-0 bg-white/10 rounded-full blur-[40px] animate-spiritual-breath"></div>
     
     <svg viewBox="0 0 100 100" className="w-full h-full relative z-10" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="towerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="white" />
-          <stop offset="50%" stopColor="#818cf8" />
-          <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.3" />
-        </linearGradient>
-        
-        <filter id="strongGlow" x="-100%" y="-100%" width="300%" height="300%">
-          <feGaussianBlur stdDeviation="4" result="blur" />
+        <filter id="beaconGlow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
           <feComposite in="SourceGraphic" in2="blur" operator="over" />
         </filter>
-
-        <radialGradient id="lightBeamGrad" cx="50%" cy="32%" r="50%">
-          <stop offset="0%" stopColor="white" stopOpacity="0.4" />
+        <radialGradient id="lightBeam" cx="50%" cy="30%" r="50%">
+          <stop offset="0%" stopColor="white" stopOpacity="0.3" />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </radialGradient>
       </defs>
       
-      {/* 极简深蓝底座背景 */}
-      <rect width="100" height="100" rx="22" fill="#060b26" />
+      {/* 深蓝圆角背景 - 匹配附件图背景色 */}
+      <rect width="100" height="100" rx="24" fill="#060b26" />
       
-      {/* 动态：旋转扫海灯束 */}
-      <g transform="translate(50, 32)">
-        <path d="M0 0 L-60 -80 L60 -80 Z" fill="url(#lightBeamGrad)">
-          <animateTransform 
-            attributeName="transform" 
-            type="rotate" 
-            from="0" to="360" 
-            dur="8s" 
-            repeatCount="indefinite" 
-          />
-        </path>
-      </g>
-
-      {/* 静态：底部基座线 */}
-      <rect x="35" y="82" width="30" height="3" rx="1.5" fill="white" fillOpacity="0.1" />
+      {/* 底部基座线 */}
+      <rect x="34" y="80" width="32" height="3" rx="1.5" fill="white" fillOpacity="0.2" />
       
-      {/* 动态：流光塔身 */}
-      <g>
-        <path d="M44 82 L48 44 H52 L56 82 Z" fill="url(#towerGrad)" />
-        {/* 塔身扫过的一道高光 */}
-        <rect x="44" y="44" width="12" height="4" fill="white" fillOpacity="0.3">
-          <animate attributeName="y" values="44;82;44" dur="4s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0;0.5;0" dur="4s" repeatCount="indefinite" />
-        </rect>
-      </g>
+      {/* 白色塔身 */}
+      <path d="M44 80 L48 38 H52 L56 80 Z" fill="white" />
       
       {/* 钟形顶盖 */}
-      <path d="M41 44 H59 L55 35 C53 30 47 30 45 35 L41 44 Z" fill="white" />
-
-      {/* 核心：动态脉冲光源 */}
-      <circle cx="50" cy="34" r="5" fill="white" filter="url(#strongGlow)">
-        <animate attributeName="r" values="4.5;6;4.5" dur="2s" repeatCount="indefinite" />
-        <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite" />
+      <path d="M40 38 H60 L55 30 C53 26 47 26 45 30 L40 38 Z" fill="white" />
+      
+      {/* 顶部核心光源 */}
+      <circle cx="50" cy="28" r="4.5" fill="white" filter="url(#beaconGlow)">
+        <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite" />
       </circle>
+
+      {/* 放射状光晕 */}
+      <path d="M50 28 L10 -10 M50 28 L90 -10" stroke="white" strokeWidth="0.5" strokeOpacity="0.1" />
     </svg>
   </div>
 );
@@ -127,7 +101,7 @@ const App: React.FC = () => {
     return (
       <div className={`fixed inset-0 z-[9999] bg-[#020617] flex flex-col items-center justify-center transition-all duration-1000 ${bootStatus === 'exiting' ? 'opacity-0 scale-110 blur-xl' : ''}`}>
         <div className="flex flex-col items-center w-full max-w-sm px-10 text-center space-y-16">
-          <SpiritualBeacon className="w-48 h-48 drop-shadow-[0_0_30px_rgba(79,70,229,0.3)]" />
+          <SpiritualBeacon className="w-48 h-48 drop-shadow-[0_0_30px_rgba(255,255,255,0.05)]" />
           
           <div className="space-y-8">
             <div className="h-16 flex items-center justify-center">
@@ -148,7 +122,7 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="absolute bottom-12 w-32 h-[2px] bg-white/5 rounded-full overflow-hidden">
-           <div className="h-full bg-indigo-500/50 animate-[shimmer_2s_infinite]"></div>
+           <div className="h-full bg-white/20 animate-[shimmer_2s_infinite]"></div>
         </div>
       </div>
     );

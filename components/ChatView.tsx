@@ -60,16 +60,6 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
     if (scrollRef.current) scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, loading]);
 
-  useEffect(() => {
-    if (showCamera && !isPreviewing && stream && videoRef.current) {
-      videoRef.current.srcObject = stream;
-      videoRef.current.play().catch(err => {
-        console.error("Video play error:", err);
-        setErrorMsg("无法启动实时预览，请尝试直接上传。");
-      });
-    }
-  }, [showCamera, isPreviewing, stream]);
-
   const handleSend = async () => {
     if ((!input.trim() && !capturedImage) || loading) return;
     
@@ -133,6 +123,7 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
       setShowCamera(true);
       setIsPreviewing(false);
       setTempImage(null);
+      setErrorMsg(null);
     } catch (err) {
       console.error("Camera access error:", err);
       fileInputRef.current?.click(); 
@@ -153,12 +144,16 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
     if (videoRef.current && canvasRef.current) {
       const c = canvasRef.current; 
       const v = videoRef.current;
+      
+      // 关键修复：确保视频已有内容再截图
+      if (v.videoWidth === 0 || v.videoHeight === 0) return;
+
       c.width = v.videoWidth; 
       c.height = v.videoHeight;
       const ctx = c.getContext('2d');
       if (ctx) {
         ctx.drawImage(v, 0, 0);
-        const dataUrl = c.toDataURL('image/jpeg', 0.8);
+        const dataUrl = c.toDataURL('image/jpeg', 0.85);
         setTempImage({ data: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
         setIsPreviewing(true);
       }
@@ -243,7 +238,20 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
         <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center animate-fadeIn">
           {!isPreviewing ? (
             <>
-              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+              {/* 关键修复：使用 ref 回调注入流 */}
+              <video 
+                ref={(el) => {
+                  if (el && stream && el.srcObject !== stream) {
+                    el.srcObject = stream;
+                    el.play().catch(console.error);
+                  }
+                  (videoRef as any).current = el;
+                }} 
+                autoPlay 
+                playsInline 
+                muted 
+                className="w-full h-full object-cover" 
+              />
               <div className="absolute bottom-16 flex gap-10 items-center justify-center w-full px-10">
                 <button onClick={stopCamera} className="w-16 h-16 bg-white/10 rounded-full text-white text-[10px] font-black backdrop-blur-md uppercase tracking-widest border border-white/5">取消</button>
                 <button onClick={capturePhoto} className="w-24 h-24 bg-white rounded-full border-4 border-indigo-500 shadow-[0_0_40px_rgba(79,70,229,0.5)] active:scale-90 transition-all flex items-center justify-center">

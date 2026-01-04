@@ -26,25 +26,9 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
 
-  // 确保视频流正确绑定到 DOM 元素
-  useEffect(() => {
-    let active = true;
-    if (showCameraModal && !isPreviewing && stream && videoRef.current) {
-      const video = videoRef.current;
-      if (video.srcObject !== stream) {
-        video.srcObject = stream;
-        video.onloadedmetadata = () => {
-          if (active) video.play().catch(err => console.error("Video play failed", err));
-        };
-      }
-    }
-    return () => { active = false; };
-  }, [showCameraModal, isPreviewing, stream]);
-
   const startCamera = async () => {
     setCameraError(null);
     try {
-      // 使用更具兼容性的约束条件
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'environment',
@@ -59,7 +43,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       setTempImage(null);
     } catch (err: any) {
       console.error("Camera access error:", err);
-      // 如果相机不可用，尝试唤起系统相册
       if (fileInputRef.current) {
         fileInputRef.current.click();
       } else {
@@ -83,7 +66,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       const video = videoRef.current;
       const canvas = canvasRef.current;
       
-      // 检查视频流是否已就绪
       if (video.videoWidth === 0 || video.videoHeight === 0) return;
 
       canvas.width = video.videoWidth;
@@ -103,7 +85,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       setPendingImages(prev => [...prev, tempImage]);
       setIsPreviewing(false);
       setTempImage(null);
-      // 保持相机开启状态，继续拍摄下一张
     }
   };
 
@@ -163,7 +144,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       />
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* 风险探测模块 */}
       <section className="space-y-5">
         <div className="flex items-center justify-between px-2">
           <h3 className="text-[19px] font-black text-white flex items-center gap-3 tracking-tight">
@@ -207,7 +187,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
         </div>
       </section>
 
-      {/* 破局工具箱模块 */}
       <section className="space-y-5">
         <h3 className="text-[19px] font-black text-white flex items-center gap-3 tracking-tight px-2">
           <div className="w-1.5 h-7 bg-blue-600 rounded-full"></div>
@@ -223,13 +202,18 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
         </div>
       </section>
 
-      {/* 相机 Modal */}
       {showCameraModal && (
         <div className="fixed inset-0 z-[600] bg-black flex flex-col items-center animate-fadeIn">
           {!isPreviewing ? (
             <>
               <video 
-                ref={videoRef} 
+                ref={(el) => {
+                  if (el && stream && el.srcObject !== stream) {
+                    el.srcObject = stream;
+                    el.play().catch(console.error);
+                  }
+                  (videoRef as any).current = el;
+                }} 
                 autoPlay 
                 playsInline 
                 muted 
@@ -249,15 +233,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
               </div>
               
               <div className="absolute bottom-16 w-full px-10 flex flex-col items-center gap-6">
-                {pendingImages.length > 0 && (
-                  <div className="flex gap-2 overflow-x-auto max-w-full scroll-hide animate-fadeIn">
-                    {pendingImages.map((img, i) => (
-                      <div key={i} className="w-10 h-10 rounded-lg border border-white/30 overflow-hidden shrink-0 shadow-lg">
-                        <img src={`data:${img.mimeType};base64,${img.data}`} className="w-full h-full object-cover" />
-                      </div>
-                    ))}
-                  </div>
-                )}
                 <button 
                   onClick={capturePhoto} 
                   className="w-24 h-24 bg-white rounded-full border-[6px] border-orange-500/50 flex items-center justify-center active:scale-90 shadow-[0_0_50px_rgba(249,115,22,0.4)] transition-all"
@@ -278,9 +253,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
                   确认添加
                 </button>
               </div>
-              <div className="absolute top-16 left-0 right-0 text-center">
-                <p className="text-white text-xs font-black uppercase tracking-[0.4em] drop-shadow-lg">检查资料清晰度</p>
-              </div>
             </div>
           )}
           {cameraError && (
@@ -292,7 +264,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
         </div>
       )}
 
-      {/* 分析结果 Modal */}
       {showAnalysisModal && (
         <div className="fixed inset-0 z-[700] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-3xl">
            <div className="bg-white rounded-[44px] p-8 w-full max-w-[420px] shadow-2xl space-y-6 overflow-hidden flex flex-col max-h-[85vh]">
@@ -308,7 +279,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
                    </div>
                  ) : auditResult}
               </div>
-              
               <button onClick={() => setShowAnalysisModal(false)} className="w-full bg-slate-900 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest shadow-xl shrink-0 active:scale-95 transition-all">
                 关闭报告
               </button>
