@@ -116,23 +116,23 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <header className="px-6 py-8 flex items-center justify-between border-b border-white/5 bg-[#020617]/50 backdrop-blur-md sticky top-0 z-40">
+      <header className="px-6 py-6 flex items-center justify-between border-b border-white/5 bg-[#020617]/50 backdrop-blur-md sticky top-0 z-40">
         <div className="flex items-center gap-4">
-          <SpiritualBeacon className="w-10 h-10" />
+          <SpiritualBeacon className="w-8 h-8" />
           <div className="flex flex-col">
-            <h1 className="text-2xl font-black text-white tracking-tighter">债策</h1>
-            <span className="text-[8px] font-black text-indigo-500 uppercase tracking-widest">Digital Sanctuary</span>
+            <h1 className="text-xl font-black text-white tracking-tighter">债策</h1>
+            <span className="text-[7px] font-black text-indigo-500 uppercase tracking-widest">Digital Sanctuary</span>
           </div>
         </div>
         <button 
           onClick={() => setActiveTab(AppTab.PRO)} 
-          className={`text-[10px] px-5 py-2.5 rounded-2xl font-black uppercase transition-all shadow-lg ${userStatus.isPro ? 'bg-emerald-500 text-emerald-950 shadow-emerald-500/20' : 'bg-indigo-600 shadow-indigo-500/20'}`}
+          className={`text-[9px] px-4 py-2 rounded-xl font-black uppercase transition-all shadow-lg ${userStatus.isPro ? 'bg-emerald-500 text-emerald-950 shadow-emerald-500/20' : 'bg-indigo-600 shadow-indigo-500/20'}`}
         >
           {userStatus.isPro ? '专家模式' : '升级破局'}
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-40 px-4 pt-4 scroll-hide">
+      <main className="flex-1 overflow-y-auto px-4 pt-4 scroll-hide relative">
         {activeTab === AppTab.HOME && <HomeView onStartChat={() => setActiveTab(AppTab.CHAT)} userStatus={userStatus} onShare={handleRefShare} />}
         {activeTab === AppTab.CHAT && <ChatView isPro={userStatus.isPro} onNavigateToPro={() => setActiveTab(AppTab.PRO)} />}
         {activeTab === AppTab.HEAL && <VoiceCompanionView />}

@@ -44,7 +44,6 @@ const VoiceCompanionView: React.FC = () => {
       if (window.aistudio && !(await window.aistudio.hasSelectedApiKey())) {
          // @ts-ignore
          await window.aistudio.openSelectKey();
-         // 继续执行，Gemini 会在发起请求时读取最新的 process.env.API_KEY
       }
 
       setConnectionStep(2);
@@ -62,7 +61,6 @@ const VoiceCompanionView: React.FC = () => {
       setStatus('建立加密信道...');
       setConnectionStep(4);
       
-      // 按照官方指南：每次连接前读取 process.env.API_KEY
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-09-2025',
@@ -120,7 +118,7 @@ const VoiceCompanionView: React.FC = () => {
           },
           onerror: (e: any) => {
             console.error('Live API Error:', e);
-            setStatus('连接波动，正在自动重置信道...');
+            setStatus('连接波动，正在重试...');
             // @ts-ignore
             if (e.message?.includes("401") && window.aistudio) window.aistudio.openSelectKey();
             cleanup();
@@ -161,7 +159,7 @@ const VoiceCompanionView: React.FC = () => {
         });
         setSummary(response.text || '每一个勇敢面对的瞬间，都是重回自由的开始。');
       } catch (err) {
-        setSummary('感谢您的倾诉。记住，您并不孤单，我们一直在灯塔处守护。');
+        setSummary('感谢您的倾诉。记住，您并不孤单。');
       }
     } else {
       setSummary('静静的陪伴也是一种力量。如有需要，我随时都在。');
@@ -178,55 +176,55 @@ const VoiceCompanionView: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-between h-full pt-4 pb-32 px-6 text-center animate-fadeIn overflow-hidden">
-      <div className="space-y-2 shrink-0">
-        <h3 className="text-xl font-black text-white">{isActive ? '正在聆听您的倾诉' : summary ? '疗愈反馈' : '1V1 语音疗愈'}</h3>
-        <p className={`text-[10px] font-bold uppercase tracking-widest transition-all ${isActive ? 'text-emerald-400' : 'text-slate-500'}`}>
+    <div className="flex flex-col items-center justify-between h-[calc(100vh-140px)] py-4 px-6 text-center animate-fadeIn overflow-hidden">
+      <div className="space-y-1 shrink-0">
+        <h3 className="text-xl font-black text-white tracking-tight">{isActive ? '正在聆听您的倾诉' : summary ? '疗愈反馈' : '1V1 语音疗愈'}</h3>
+        <p className={`text-[9px] font-bold uppercase tracking-[0.2em] transition-all ${isActive ? 'text-emerald-400' : 'text-slate-500'}`}>
           {status}
         </p>
         {connectionStep > 0 && !isActive && (
-          <div className="w-24 h-1 bg-slate-800 rounded-full mx-auto mt-2 overflow-hidden">
+          <div className="w-16 h-0.5 bg-slate-800 rounded-full mx-auto mt-2 overflow-hidden">
              <div className="h-full bg-indigo-500 transition-all duration-500 animate-pulse" style={{ width: `${(connectionStep / 5) * 100}%` }}></div>
           </div>
         )}
       </div>
 
-      <div className="flex-1 w-full flex flex-col items-center justify-center gap-6 py-4">
+      <div className="flex-1 w-full flex flex-col items-center justify-center py-2">
         {summary ? (
-          <div className="w-full animate-fadeIn bg-white/5 border border-white/10 p-8 rounded-[40px] text-left space-y-4 backdrop-blur-xl relative shadow-2xl">
-            <div className="absolute -top-3 left-8 bg-indigo-600 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white">AI 疗愈回响</div>
-            <p className="text-sm text-slate-200 leading-relaxed font-medium italic">{summary}</p>
-            <button onClick={() => setSummary(null)} className="text-[10px] text-indigo-400 font-black uppercase underline hover:text-indigo-300">关闭反馈</button>
+          <div className="w-full animate-fadeIn bg-white/5 border border-white/10 p-6 rounded-[32px] text-left space-y-3 backdrop-blur-xl relative shadow-2xl">
+            <div className="absolute -top-3 left-6 bg-indigo-600 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-white">AI 疗愈回响</div>
+            <p className="text-[13px] text-slate-200 leading-relaxed font-medium italic">{summary}</p>
+            <button onClick={() => setSummary(null)} className="text-[9px] text-indigo-400 font-black uppercase underline">关闭反馈</button>
           </div>
         ) : (
-          <div className={`w-40 h-40 rounded-full flex items-center justify-center transition-all duration-1000 ${isActive ? 'bg-indigo-600 animate-pulse shadow-[0_0_80px_rgba(79,70,229,0.5)]' : 'bg-slate-900 shadow-inner'}`}>
+          <div className={`w-32 h-32 rounded-full flex items-center justify-center transition-all duration-1000 ${isActive ? 'bg-indigo-600 animate-pulse shadow-[0_0_60px_rgba(79,70,229,0.3)]' : 'bg-slate-900 shadow-inner'}`}>
              {isActive ? (
                 <div className="flex items-center gap-1">
-                   {[1,2,3].map(i => <div key={i} className="w-1.5 h-8 bg-white rounded-full animate-bounce" style={{ animationDelay: `${i*0.2}s` }}></div>)}
+                   {[1,2,3].map(i => <div key={i} className="w-1 h-6 bg-white rounded-full animate-bounce" style={{ animationDelay: `${i*0.2}s` }}></div>)}
                 </div>
              ) : (
-                <span className="text-6xl grayscale opacity-30">🛋️</span>
+                <span className="text-5xl grayscale opacity-20">🛋️</span>
              )}
           </div>
         )}
       </div>
 
-      <div className="w-full space-y-4 shrink-0">
+      <div className="w-full pb-28 shrink-0 space-y-4">
         {!isActive ? (
           <button 
             onClick={startSession} 
             disabled={connectionStep > 0}
-            className="w-full bg-indigo-600 text-white py-6 rounded-[24px] font-black uppercase tracking-[0.2em] text-sm shadow-xl active:scale-95 transition-all disabled:opacity-50"
+            className="w-full bg-indigo-600 text-white py-5 rounded-[22px] font-black uppercase tracking-[0.25em] text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50"
           >
-            {connectionStep > 0 ? '正在点亮灯塔...' : '开启通话'}
+            {connectionStep > 0 ? '正在同步...' : '开启通话'}
           </button>
         ) : (
-          <button onClick={endSession} className="w-full bg-slate-900 border border-white/5 text-slate-400 py-6 rounded-[24px] font-black uppercase tracking-widest text-sm active:scale-95 transition-all">
+          <button onClick={endSession} className="w-full bg-slate-900 border border-white/5 text-slate-400 py-5 rounded-[22px] font-black uppercase tracking-widest text-xs active:scale-95 transition-all">
             结束通话
           </button>
         )}
-        <p className="text-[8px] text-slate-600 font-bold uppercase tracking-widest">
-          {isActive ? "对话实时流加密中" : "采用 Native Audio 级语义识别"}
+        <p className="text-[7px] text-slate-600 font-bold uppercase tracking-widest">
+          {isActive ? "端对端流加密运行中" : "采用 Native Audio 级语义识别"}
         </p>
       </div>
     </div>

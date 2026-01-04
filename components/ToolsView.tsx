@@ -8,6 +8,7 @@ import SnowballView from './SnowballView.tsx';
 import ScriptView from './ScriptView.tsx';
 import InstallGuideView from './InstallGuideView.tsx';
 import CollectionDefenseView from './CollectionDefenseView.tsx';
+import TermsPrivacyView from './TermsPrivacyView.tsx';
 
 const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
@@ -75,8 +76,8 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       );
       setAuditResult(response.text);
     } catch (err: any) {
-      if (err.message === "KEY_NOT_FOUND" || err.message === "API_KEY_MISSING") {
-        setAuditResult("密钥未检测到或已失效。请点击下方“重新配置密钥”按钮。");
+      if (err.message && err.message.includes("AUTH_KEY_ERROR")) {
+        setAuditResult(err.message.split(": ")[1]);
       } else {
         setAuditResult("系统连接中断。可能由于网络加速环境不稳定，请切换节点重试。");
       }
@@ -92,6 +93,7 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
   if (activeTool === 'script') return <ScriptView onBack={() => setActiveTool(null)} />;
   if (activeTool === 'install') return <InstallGuideView onBack={() => setActiveTool(null)} />;
   if (activeTool === 'defense') return <CollectionDefenseView onBack={() => setActiveTool(null)} />;
+  if (activeTool === 'privacy') return <TermsPrivacyView onBack={() => setActiveTool(null)} />;
 
   return (
     <div className="space-y-10 pb-40 animate-fadeIn px-2">
@@ -146,6 +148,19 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
         </div>
       </section>
 
+      {/* 条款与隐私入口 */}
+      <div className="flex flex-col items-center gap-4 pt-6 opacity-30">
+        <button 
+          onClick={() => setActiveTool('privacy')}
+          className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] hover:text-indigo-400 transition-colors"
+        >
+          TERMS AND PRIVACY
+        </button>
+        <p className="text-[7px] text-slate-700 font-bold uppercase tracking-widest">
+          RSA-4096 Secure Encryption Protocol Enabled
+        </p>
+      </div>
+
       {/* 相机 Modal */}
       {showCameraModal && (
         <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center">
@@ -172,12 +187,12 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
                  {isAnalyzing ? "AI 正在逐行扫描法务风险..." : auditResult}
               </div>
               
-              {auditResult.includes("密钥") && (
+              {(auditResult.includes("点亮灯塔") || auditResult.includes("重新授权")) && (
                  <button 
-                  onClick={async () => { /* @ts-ignore */ await window.aistudio.openSelectKey(); setShowAnalysisModal(false); }}
+                  onClick={async () => { /* @ts-ignore */ if(window.aistudio) await window.aistudio.openSelectKey(); setShowAnalysisModal(false); }}
                   className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-xs uppercase"
                  >
-                   重新配置密钥
+                   点亮灯塔 (重新同步密钥)
                  </button>
               )}
 
