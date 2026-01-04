@@ -26,7 +26,9 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
   useEffect(() => {
     if (showCameraModal && stream && videoRef.current) {
       videoRef.current.srcObject = stream;
-      videoRef.current.play().catch(console.error);
+      videoRef.current.play().catch(err => {
+        console.error("Camera play failed:", err);
+      });
     }
   }, [showCameraModal, stream]);
 
@@ -39,13 +41,16 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       setStream(mediaStream);
       setShowCameraModal(true);
     } catch (err) {
+      console.error("Camera error:", err);
       fileInputRef.current?.click();
     }
   };
 
   const stopCamera = () => {
-    if (stream) stream.getTracks().forEach(track => track.stop());
-    setStream(null);
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
     setShowCameraModal(false);
   };
 
@@ -66,7 +71,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
 
   const runMultiAudit = async () => {
     if (pendingImages.length === 0) return;
-    stopCamera();
     setIsAnalyzing(true);
     setShowAnalysisModal(true);
     try {
@@ -97,7 +101,15 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
 
   return (
     <div className="space-y-10 pb-40 animate-fadeIn px-2">
-      <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} />
+      {/* Fix: Explicitly cast files to File[] to ensure 'f' is correctly typed as File, resolving property 'type' and Blob parameter errors */}
+      <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={(e) => {
+        const files = Array.from(e.target.files || []) as File[];
+        files.forEach(f => {
+          const r = new FileReader();
+          r.onload = (ev) => setPendingImages(prev => [...prev, { data: (ev.target?.result as string).split(',')[1], mimeType: f.type }]);
+          r.readAsDataURL(f);
+        });
+      }} />
       <canvas ref={canvasRef} className="hidden" />
 
       {/* 风险探测模块 */}
@@ -113,6 +125,16 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
         </div>
         
         <div className="bg-white rounded-[48px] p-8 shadow-2xl space-y-6 relative overflow-hidden">
+          {pendingImages.length > 0 && (
+             <div className="flex gap-2 overflow-x-auto pb-2">
+               {pendingImages.map((img, i) => (
+                 <div key={i} className="relative shrink-0">
+                    <img src={`data:${img.mimeType};base64,${img.data}`} className="w-16 h-16 rounded-xl object-cover border border-slate-200" />
+                    <button onClick={() => setPendingImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[8px]">✕</button>
+                 </div>
+               ))}
+             </div>
+          )}
           <div className="flex items-center gap-7">
             <div className="w-20 h-20 bg-blue-50 rounded-[28px] flex items-center justify-center shadow-inner shrink-0 text-3xl">👁️</div>
             <div className="space-y-1">
@@ -123,7 +145,7 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
 
           <div className="flex gap-3">
              <button onClick={startCamera} className="flex-1 bg-slate-900 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
-               {pendingImages.length > 0 ? `已选 ${pendingImages.length} 张` : '拍摄资料'}
+               拍摄资料
              </button>
              {pendingImages.length > 0 && (
                <button onClick={runMultiAudit} className="flex-1 bg-orange-500 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-lg">开始审计</button>
@@ -148,22 +170,9 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
         </div>
       </section>
 
-      {/* 条款与隐私入口 */}
-      <div className="flex flex-col items-center gap-4 pt-6 opacity-30">
-        <button 
-          onClick={() => setActiveTool('privacy')}
-          className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] hover:text-indigo-400 transition-colors"
-        >
-          TERMS AND PRIVACY
-        </button>
-        <p className="text-[7px] text-slate-700 font-bold uppercase tracking-widest">
-          RSA-4096 Secure Encryption Protocol Enabled
-        </p>
-      </div>
-
       {/* 相机 Modal */}
       {showCameraModal && (
-        <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center">
+        <div className="fixed inset-0 z-[600] bg-black flex flex-col items-center">
           <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
           <div className="absolute bottom-16 w-full px-10 flex items-center justify-between">
             <button onClick={stopCamera} className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-full text-white text-xs font-black">完成</button>
@@ -177,7 +186,7 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
 
       {/* 分析结果 Modal */}
       {showAnalysisModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-3xl">
+        <div className="fixed inset-0 z-[700] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-3xl">
            <div className="bg-white rounded-[44px] p-8 w-full max-w-[420px] shadow-2xl space-y-6 overflow-y-auto max-h-[80vh]">
               <div className="flex justify-between items-center border-b border-slate-50 pb-4">
                  <h3 className="text-xl font-black text-slate-900">审计报告</h3>
@@ -187,15 +196,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
                  {isAnalyzing ? "AI 正在逐行扫描法务风险..." : auditResult}
               </div>
               
-              {(auditResult.includes("点亮灯塔") || auditResult.includes("重新授权")) && (
-                 <button 
-                  onClick={async () => { /* @ts-ignore */ if(window.aistudio) await window.aistudio.openSelectKey(); setShowAnalysisModal(false); }}
-                  className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-xs uppercase"
-                 >
-                   点亮灯塔 (重新同步密钥)
-                 </button>
-              )}
-
               <button onClick={() => setShowAnalysisModal(false)} className="w-full bg-slate-900 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest">关闭报告</button>
            </div>
         </div>

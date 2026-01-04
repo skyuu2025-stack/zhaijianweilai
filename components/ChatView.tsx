@@ -58,6 +58,16 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
     if (scrollRef.current) scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, loading]);
 
+  useEffect(() => {
+    if (showCamera && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(err => {
+        console.error("Video play error:", err);
+        setErrorMsg("无法启动实时预览，请尝试直接上传。");
+      });
+    }
+  }, [showCamera, stream]);
+
   const handleSend = async () => {
     if ((!input.trim() && !capturedImage) || loading) return;
     
@@ -98,7 +108,6 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
       let errorText = "系统连接中断，请检查网络环境。";
       
       if (err.message && err.message.includes("AUTH_KEY_ERROR")) {
-        // 使用来自服务层的更友好的错误描述
         errorText = err.message.split(": ")[1] || "检测到加密密钥连接失败。请点击下方按钮重新同步您的专家密钥。";
       }
       
@@ -115,27 +124,44 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
 
   const startCamera = async () => {
     try {
-      const ms = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      const ms = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+      });
       setStream(ms);
       setShowCamera(true);
-    } catch { fileInputRef.current?.click(); }
+    } catch (err) {
+      console.error("Camera access error:", err);
+      fileInputRef.current?.click(); 
+    }
   };
 
-  const stopCamera = () => { stream?.getTracks().forEach(t => t.stop()); setStream(null); setShowCamera(false); };
+  const stopCamera = () => { 
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      setStream(null);
+    }
+    setShowCamera(false); 
+  };
 
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
-      const c = canvasRef.current; const v = videoRef.current;
-      c.width = v.videoWidth; c.height = v.videoHeight;
-      c.getContext('2d')?.drawImage(v, 0, 0);
-      setCapturedImage({ data: c.toDataURL('image/jpeg').split(',')[1], mimeType: 'image/jpeg' });
-      stopCamera();
+      const c = canvasRef.current; 
+      const v = videoRef.current;
+      c.width = v.videoWidth; 
+      c.height = v.videoHeight;
+      const ctx = c.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(v, 0, 0);
+        const dataUrl = c.toDataURL('image/jpeg', 0.8);
+        setCapturedImage({ data: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
+        stopCamera();
+      }
     }
   };
 
   return (
     <div className="flex flex-col h-full gap-4 animate-fadeIn relative">
-      <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => {
+      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => {
         const f = e.target.files?.[0];
         if (f) { const r = new FileReader(); r.onload = (ev) => setCapturedImage({ data: (ev.target?.result as string).split(',')[1], mimeType: f.type }); r.readAsDataURL(f); }
       }} />
@@ -179,15 +205,35 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
       {isListening && <div className="fixed bottom-36 left-4 right-4 z-50 bg-[#0f172a]/90 backdrop-blur-xl border border-indigo-500/30 rounded-[32px] p-6 text-center animate-fadeIn"><p className="text-[12px] text-indigo-300 font-bold">{interimText || "正在倾听..."}</p></div>}
 
       <div className="fixed bottom-24 left-4 right-4 max-w-md mx-auto z-40">
-        <div className="bg-[#0f172a]/95 backdrop-blur-2xl rounded-[32px] border border-white/10 p-2 flex items-center gap-2 shadow-2xl">
-          <button onClick={startCamera} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-slate-800 text-slate-400">📷</button>
+        <div className="bg-[#0f172a]/95 backdrop-blur-2xl rounded-[32px] border border-white/10 p-2 flex items-center gap-2 shadow-2xl relative">
+          {capturedImage && (
+             <div className="absolute -top-16 left-2 animate-fadeIn">
+               <div className="relative">
+                  <img src={`data:${capturedImage.mimeType};base64,${capturedImage.data}`} className="w-12 h-12 rounded-lg border-2 border-indigo-500 object-cover" />
+                  <button onClick={() => setCapturedImage(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center">✕</button>
+               </div>
+             </div>
+          )}
+          <button onClick={startCamera} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-slate-800 text-slate-400 active:scale-90 transition-all">📷</button>
           <button onClick={toggleListening} className={`w-10 h-10 rounded-2xl flex items-center justify-center ${isListening ? 'bg-indigo-600 text-white animate-pulse' : 'bg-slate-800 text-slate-400'}`}>🎙️</button>
           <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()} placeholder="输入困境，AI 为您陪伴..." className="flex-1 bg-transparent border-none outline-none text-white text-sm px-2" />
-          <button handleSend onClick={handleSend} disabled={loading} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-indigo-600 text-white disabled:opacity-30">🚀</button>
+          <button onClick={handleSend} disabled={loading} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-indigo-600 text-white disabled:opacity-30 active:scale-90 transition-all">🚀</button>
         </div>
       </div>
 
-      {showCamera && <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center"><video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" /><div className="absolute bottom-16 flex gap-10"><button onClick={stopCamera} className="w-16 h-16 bg-white/10 rounded-full text-white text-xs">取消</button><button capturePhoto onClick={capturePhoto} className="w-20 h-20 bg-white rounded-full border-4 border-indigo-500"></button></div></div>}
+      {showCamera && (
+        <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center">
+          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+          <div className="absolute bottom-16 flex gap-10 items-center">
+            <button onClick={stopCamera} className="w-16 h-16 bg-white/10 rounded-full text-white text-xs font-black backdrop-blur-md">取消</button>
+            <button onClick={capturePhoto} className="w-24 h-24 bg-white rounded-full border-4 border-indigo-500 shadow-2xl active:scale-90 transition-all flex items-center justify-center">
+               <div className="w-16 h-16 rounded-full border-2 border-slate-200"></div>
+            </button>
+            <div className="w-16"></div>
+          </div>
+          {errorMsg && <div className="absolute top-10 bg-red-500 text-white px-4 py-2 rounded-full text-xs">{errorMsg}</div>}
+        </div>
+      )}
     </div>
   );
 };

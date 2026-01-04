@@ -38,6 +38,7 @@ export interface DiaryEntry {
 
 export interface UserStatus {
   isPro: boolean;
+  isLifetimeFree?: boolean; // 灯塔女神赠予的永久权益
   tier?: string;
   referralCount: number; // 裂变分享计数
 }
