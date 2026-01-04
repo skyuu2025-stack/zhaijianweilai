@@ -41,6 +41,7 @@ export interface UserStatus {
   isLifetimeFree?: boolean; // 灯塔女神赠予的永久权益
   tier?: string;
   referralCount: number; // 裂变分享计数
+  lastDrawMonth?: string; // 记录上一次抽奖的月份 (YYYY-MM)
 }
 
 export interface HabitItem {

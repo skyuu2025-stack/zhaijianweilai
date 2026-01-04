@@ -20,6 +20,7 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
   const [auditResult, setAuditResult] = useState<string>('');
   const [pendingImages, setPendingImages] = useState<{ data: string, mimeType: string }[]>([]);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -95,6 +96,13 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
 
   const runMultiAudit = async () => {
     if (pendingImages.length === 0) return;
+    
+    // 严格检查：非 Pro 用户禁止进入专家审计
+    if (!isPro) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+
     setIsAnalyzing(true);
     setShowAnalysisModal(true);
     setAuditResult("正在启动加密审计引擎，分析多份资料关联性...");
@@ -150,8 +158,9 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
             <div className="w-1.5 h-7 bg-orange-500 rounded-full"></div>
             风险探测
           </h3>
-          <div className="px-4 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] font-black rounded-full tracking-widest uppercase">
-            视觉审计已开启
+          <div className="flex items-center gap-2 px-4 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] font-black rounded-full tracking-widest uppercase">
+            {isPro ? '专家审计已解锁' : '待解锁'} 
+            {!isPro && <span className="text-[14px]">🔒</span>}
           </div>
         </div>
         
@@ -180,7 +189,7 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
              </button>
              {pendingImages.length > 0 && (
                <button onClick={runMultiAudit} className="flex-1 bg-orange-500 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-lg animate-labelJump">
-                 开始审计报告
+                 {isPro ? '开始审计报告' : '立即升级解锁报告'}
                </button>
              )}
           </div>
@@ -200,7 +209,55 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
           <ToolCard icon="⚖️" title="法务模板" desc="标准话术库" onClick={() => setActiveTool('script')} />
           <ToolCard icon="🏔️" title="上岸习惯" desc="每日自律打卡" onClick={() => setActiveTool('habits')} />
         </div>
+        
+        <div className="pt-8 flex flex-col items-center gap-4">
+           <button 
+             onClick={() => setActiveTool('privacy')}
+             className="w-full bg-white/5 border border-white/5 p-6 rounded-[32px] flex items-center justify-between group active:scale-[0.98] transition-all"
+           >
+              <div className="flex items-center gap-4">
+                 <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-xl grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all">🔒</div>
+                 <div className="text-left">
+                    <h4 className="text-[14px] font-black text-slate-300 group-hover:text-white transition-colors">服务协议与隐私政策</h4>
+                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">RSA-4096 金融级审计隐私保护</p>
+                 </div>
+              </div>
+              <svg className="w-5 h-5 text-slate-600 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
+              </svg>
+           </button>
+           <p className="text-[8px] text-slate-700 font-black uppercase tracking-[0.4em] opacity-50">Beacon Strategy © 2026-2027</p>
+        </div>
       </section>
+
+      {/* 升级提示弹窗 */}
+      {showUpgradePrompt && (
+        <div className="fixed inset-0 z-[800] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl">
+           <div className="bg-white rounded-[50px] p-10 w-full max-w-sm shadow-2xl text-center space-y-8 animate-labelJump">
+              <div className="w-20 h-20 bg-indigo-50 rounded-[32px] flex items-center justify-center mx-auto text-4xl">💎</div>
+              <div className="space-y-3">
+                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">需要专家权益</h3>
+                 <p className="text-[13px] text-slate-500 font-medium leading-relaxed px-4">
+                   多图关联审计属于“专家版”核心功能，需升级以连接 Gemini 3 Pro 高精度法律审计引擎。
+                 </p>
+              </div>
+              <div className="space-y-3">
+                <button 
+                  onClick={() => { setShowUpgradePrompt(false); /* 这里的逻辑应当是跳转到订阅页 */ window.location.hash = 'pro'; }} 
+                  className="w-full bg-indigo-600 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest shadow-xl active:scale-95"
+                >
+                  前往升级专享
+                </button>
+                <button 
+                  onClick={() => setShowUpgradePrompt(false)} 
+                  className="w-full py-4 text-slate-400 text-[10px] font-black uppercase tracking-widest"
+                >
+                  稍后再说
+                </button>
+              </div>
+           </div>
+        </div>
+      )}
 
       {showCameraModal && (
         <div className="fixed inset-0 z-[600] bg-black flex flex-col items-center animate-fadeIn">

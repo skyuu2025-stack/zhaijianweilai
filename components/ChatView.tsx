@@ -3,7 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { geminiService } from '../geminiService';
 import { Message } from '../types';
 
-const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ isPro }) => {
+// Fix: Add onNavigateToPro to the destructured props
+const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ isPro, onNavigateToPro }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -21,6 +22,7 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
   const [isListening, setIsListening] = useState(false);
   const [interimText, setInterimText] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [useDeepMode, setUseDeepMode] = useState(isPro);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -63,6 +65,9 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
   const handleSend = async () => {
     if ((!input.trim() && !capturedImage) || loading) return;
     
+    // 二次确认：即使 UI 上显示开启，非 Pro 用户在底层也会强制降级
+    const effectiveDeepMode = useDeepMode && isPro;
+
     const userMsg: Message = { 
       id: Date.now().toString(), 
       role: 'user', 
@@ -85,7 +90,7 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
       
       const response = await geminiService.sendMessage(history, userMsg.content, { 
         images: userMsg.image ? [{ data: userMsg.image.data, mimeType: userMsg.image.mimeType }] : undefined,
-        isDeepMode: isPro 
+        isDeepMode: effectiveDeepMode 
       });
 
       setMessages(prev => [...prev, { 
@@ -144,10 +149,7 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
     if (videoRef.current && canvasRef.current) {
       const c = canvasRef.current; 
       const v = videoRef.current;
-      
-      // 关键修复：确保视频已有内容再截图
       if (v.videoWidth === 0 || v.videoHeight === 0) return;
-
       c.width = v.videoWidth; 
       c.height = v.videoHeight;
       const ctx = c.getContext('2d');
@@ -180,10 +182,23 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
       }} />
       <canvas ref={canvasRef} className="hidden" />
 
-      <div className="flex justify-center p-2 shrink-0">
-        <div className="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/30 rounded-full flex items-center gap-2">
-           <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
-           <span className="text-[9px] font-black uppercase tracking-widest text-indigo-400">RSA-4096 加密通信中</span>
+      <div className="flex flex-col items-center gap-2 p-2 shrink-0">
+        <div className="flex items-center gap-3">
+           <div className="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/30 rounded-full flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
+              <span className="text-[9px] font-black uppercase tracking-widest text-indigo-400">RSA-4096 加密信道</span>
+           </div>
+           
+           <button 
+             onClick={() => {
+               if (isPro) setUseDeepMode(!useDeepMode);
+               else onNavigateToPro();
+             }}
+             className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all flex items-center gap-2 ${useDeepMode && isPro ? 'bg-orange-500 border-orange-400 text-white' : 'bg-white/5 border-white/10 text-slate-500'}`}
+           >
+              {useDeepMode && isPro ? '深度审计中' : '标准模式'}
+              {!isPro && <span className="text-[14px] grayscale opacity-50">🔒</span>}
+           </button>
         </div>
       </div>
 
@@ -238,7 +253,6 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
         <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center animate-fadeIn">
           {!isPreviewing ? (
             <>
-              {/* 关键修复：使用 ref 回调注入流 */}
               <video 
                 ref={(el) => {
                   if (el && stream && el.srcObject !== stream) {

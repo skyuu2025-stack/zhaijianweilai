@@ -9,45 +9,36 @@ import SubscriptionView from './components/SubscriptionView.tsx';
 import VoiceCompanionView from './components/VoiceCompanionView.tsx';
 
 /**
- * SpiritualBeacon: 根据用户附件图片重绘的灯塔 LOGO
- * 包含：极简白色塔身、钟形发光顶、放射状光晕。
+ * SpiritualBeacon: 神秘灯塔 LOGO
  */
 const SpiritualBeacon: React.FC<{ className?: string }> = ({ className }) => (
   <div className={`relative flex items-center justify-center ${className}`}>
-    {/* 柔和的背景弥散光 */}
-    <div className="absolute inset-0 bg-white/10 rounded-full blur-[40px] animate-spiritual-breath"></div>
-    
+    <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-[50px] animate-pulse"></div>
     <svg viewBox="0 0 100 100" className="w-full h-full relative z-10" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <filter id="beaconGlow" x="-100%" y="-100%" width="300%" height="300%">
-          <feGaussianBlur stdDeviation="3" result="blur" />
+        <filter id="beaconGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="4" result="blur" />
           <feComposite in="SourceGraphic" in2="blur" operator="over" />
         </filter>
-        <radialGradient id="lightBeam" cx="50%" cy="30%" r="50%">
-          <stop offset="0%" stopColor="white" stopOpacity="0.3" />
+        <linearGradient id="towerGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#94a3b8" />
+        </linearGradient>
+        <radialGradient id="beamGrad" cx="50%" cy="30%" r="50%">
+          <stop offset="0%" stopColor="white" stopOpacity="0.4" />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </radialGradient>
       </defs>
-      
-      {/* 深蓝圆角背景 - 匹配附件图背景色 */}
-      <rect width="100" height="100" rx="24" fill="#060b26" />
-      
-      {/* 底部基座线 */}
-      <rect x="34" y="80" width="32" height="3" rx="1.5" fill="white" fillOpacity="0.2" />
-      
-      {/* 白色塔身 */}
-      <path d="M44 80 L48 38 H52 L56 80 Z" fill="white" />
-      
-      {/* 钟形顶盖 */}
-      <path d="M40 38 H60 L55 30 C53 26 47 26 45 30 L40 38 Z" fill="white" />
-      
-      {/* 顶部核心光源 */}
-      <circle cx="50" cy="28" r="4.5" fill="white" filter="url(#beaconGlow)">
-        <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite" />
+      <rect width="100" height="100" rx="28" fill="#020617" />
+      <g className="origin-[50px_30px] animate-[sacredRotate_8s_linear_infinite]">
+        <path d="M50 30 L-10 -20 L110 -20 Z" fill="url(#beamGrad)" />
+      </g>
+      <path d="M30 85 H70 L65 80 H35 L30 85 Z" fill="white" fillOpacity="0.3" />
+      <path d="M44 80 L48 35 H52 L56 80 Z" fill="url(#towerGrad)" />
+      <path d="M40 35 H60 L54 28 C52 24 48 24 46 28 L40 35 Z" fill="white" />
+      <circle cx="50" cy="27" r="3.5" fill="white" filter="url(#beaconGlow)">
+        <animate attributeName="opacity" values="0.4;1;0.4" dur="4s" repeatCount="indefinite" />
       </circle>
-
-      {/* 放射状光晕 */}
-      <path d="M50 28 L10 -10 M50 28 L90 -10" stroke="white" strokeWidth="0.5" strokeOpacity="0.1" />
     </svg>
   </div>
 );
@@ -85,11 +76,9 @@ const App: React.FC = () => {
   }, []);
 
   const handleRefShare = () => {
-    setUserStatus(prev => {
-      const updated = { ...prev, referralCount: Math.min(prev.referralCount + 1, 3) };
-      localStorage.setItem('user_status', JSON.stringify(updated));
-      return updated;
-    });
+    const updated = { ...userStatus, referralCount: Math.min(userStatus.referralCount + 1, 3) };
+    setUserStatus(updated);
+    localStorage.setItem('user_status', JSON.stringify(updated));
   };
 
   const handleUpdateStatus = (newStatus: UserStatus) => {
@@ -100,29 +89,24 @@ const App: React.FC = () => {
   if (bootStatus !== 'done') {
     return (
       <div className={`fixed inset-0 z-[9999] bg-[#020617] flex flex-col items-center justify-center transition-all duration-1000 ${bootStatus === 'exiting' ? 'opacity-0 scale-110 blur-xl' : ''}`}>
-        <div className="flex flex-col items-center w-full max-w-sm px-10 text-center space-y-16">
-          <SpiritualBeacon className="w-48 h-48 drop-shadow-[0_0_30px_rgba(255,255,255,0.05)]" />
-          
-          <div className="space-y-8">
-            <div className="h-16 flex items-center justify-center">
-              <p key={phraseIndex} className="text-slate-400 text-[14px] font-light animate-empathy leading-relaxed italic px-6">
+        <div className="flex flex-col items-center w-full max-w-sm px-10 text-center space-y-20">
+          <SpiritualBeacon className="w-44 h-44 drop-shadow-[0_0_50px_rgba(79,70,229,0.2)]" />
+          <div className="space-y-10">
+            <div className="h-12 flex items-center justify-center">
+              <p key={phraseIndex} className="text-slate-400 text-[13px] font-medium animate-empathy leading-relaxed italic px-8">
                 “{empathyPhrases[phraseIndex]}”
               </p>
             </div>
-            <div className="space-y-2">
-              <h1 className="text-5xl font-black text-white tracking-[0.4em] uppercase">
+            <div className="space-y-4">
+              <h1 className="text-6xl font-black text-white tracking-[0.3em] uppercase">
                 <span className="text-spiritual-shine">债策</span>
               </h1>
-              <div className="flex items-center justify-center gap-2">
-                <div className="h-[1px] w-8 bg-white/10"></div>
-                <p className="text-[10px] text-indigo-500 font-bold tracking-[0.5em] uppercase">Digital Sanctuary</p>
-                <div className="h-[1px] w-8 bg-white/10"></div>
+              <div className="flex flex-col items-center justify-center gap-1">
+                <p className="text-[11px] text-slate-200 font-black tracking-[0.6em] uppercase">黑暗中提灯 · 废墟中重建</p>
+                <div className="h-[2px] w-12 bg-indigo-500/50 rounded-full mt-2"></div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="absolute bottom-12 w-32 h-[2px] bg-white/5 rounded-full overflow-hidden">
-           <div className="h-full bg-white/20 animate-[shimmer_2s_infinite]"></div>
         </div>
       </div>
     );
@@ -133,8 +117,8 @@ const App: React.FC = () => {
       {!privacyAgreed && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-950/98 backdrop-blur-3xl animate-fadeIn">
           <div className="bg-white rounded-[48px] p-10 w-full max-sm shadow-2xl space-y-8 text-center">
-            <div className="w-20 h-20 bg-indigo-50 rounded-[32px] flex items-center justify-center mx-auto relative">
-               <SpiritualBeacon className="w-14 h-14" />
+            <div className="w-24 h-24 bg-indigo-50 rounded-[32px] flex items-center justify-center mx-auto relative">
+               <SpiritualBeacon className="w-16 h-16" />
             </div>
             <div className="space-y-3">
               <h3 className="text-2xl font-black text-slate-900">最隐秘的陪伴</h3>
@@ -149,10 +133,10 @@ const App: React.FC = () => {
 
       <header className="px-6 py-6 flex items-center justify-between border-b border-white/5 bg-[#020617]/50 backdrop-blur-md sticky top-0 z-40">
         <div className="flex items-center gap-4">
-          <SpiritualBeacon className="w-8 h-8" />
+          <SpiritualBeacon className="w-10 h-10" />
           <div className="flex flex-col">
             <h1 className="text-xl font-black text-white tracking-tighter">债策</h1>
-            <span className="text-[7px] font-black text-indigo-500 uppercase tracking-widest">Digital Sanctuary</span>
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-spiritual-shine">黑暗中提灯 · 废墟中重建</span>
           </div>
         </div>
         <button 
@@ -164,12 +148,12 @@ const App: React.FC = () => {
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 pt-4 scroll-hide relative">
-        {activeTab === AppTab.HOME && <HomeView onStartChat={() => setActiveTab(AppTab.CHAT)} userStatus={userStatus} onShare={handleRefShare} onSetLifetimeFree={() => handleUpdateStatus({...userStatus, isLifetimeFree: true, isPro: true})} />}
+        {activeTab === AppTab.HOME && <HomeView onStartChat={() => setActiveTab(AppTab.CHAT)} userStatus={userStatus} onShare={handleRefShare} onSetLifetimeFree={handleUpdateStatus} />}
         {activeTab === AppTab.CHAT && <ChatView isPro={userStatus.isPro} onNavigateToPro={() => setActiveTab(AppTab.PRO)} />}
         {activeTab === AppTab.HEAL && <VoiceCompanionView />}
         {activeTab === AppTab.ASSETS && <AssetsView />}
         {activeTab === AppTab.TOOLS && <ToolsView isPro={userStatus.isPro} />}
-        {activeTab === AppTab.PRO && <SubscriptionView onSubscribe={() => handleUpdateStatus({...userStatus, isPro: true})} />}
+        {activeTab === AppTab.PRO && <SubscriptionView onSubscribe={(tier) => handleUpdateStatus({...userStatus, isPro: true, tier})} />}
       </main>
 
       <div className="fixed bottom-6 left-6 right-6 max-w-[360px] mx-auto z-50">
