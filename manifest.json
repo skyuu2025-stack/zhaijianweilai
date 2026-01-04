@@ -5,7 +5,7 @@
   "description": "专为中国负债群体设计的心理陪伴、财务审计与法律避坑 AI 助手。采用端到端加密技术保护隐私，提供债务雪球清偿计划、法律话术模拟、及基于 Gemini 3 Pro 的高精度合同风险审计。",
   "icons": [
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzAyMDYxNyIvPjxnIGZpbGw9IndoaXRlIj48cGF0aCBkPSJNMjU2IDQwIEwyNTYgODAgTTQwIDI1NiBMODAgMjU2IE00MzIgMjU2IEw0NzIgMjU2IE0yNTYgNDMyIEwyNTYgNDcyIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iOTAiIGZpbGwtb3BhY2l0eT0iMC4xNSIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iNDAiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTI1NiAxNDAgTDI1NiAxODAiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMjQiLz48L2c+PC9zdmc+",
+      "src": "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMCIgZmlsbD0iIzAwMDAwMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTIlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI0ZGRkZGRiIgZm9udC1mYW1pbHk9IidOb3RvIFNhbnMgU0MnLCAnSGVsdmV0aWNhIE5ldWUnLCBzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjMyMCI+5YrogPC90ZXh0Pjwvc3ZnPg==",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
@@ -14,14 +14,14 @@
   "start_url": "/?utm_source=pwa",
   "display": "standalone",
   "theme_color": "#020617",
-  "background_color": "#020617",
+  "background_color": "#000000",
   "orientation": "portrait",
   "categories": ["finance", "productivity", "social"],
   "shortcuts": [
     {
       "name": "AI 风险审计",
       "url": "/?tab=chat",
-      "icons": [{ "src": "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIyIiBmaWxsPSIjMDYwYjI2Ii8+PGNpcmNsZSBjeD0iNTAiIGN5PSIzMiIgcj0iNDUiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuMSIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzIiIHI9IjgiIGZpbGw9IndoaXRlIi8+PC9zdmc+", "sizes": "192x192" }]
+      "icons": [{ "src": "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMCIgZmlsbD0iIzAwMDAwMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTIlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI0ZGRkZGRiIgZm9udC1mYW1pbHk9IidOb3RvIFNhbnMgU0MnLCAnSGVsdmV0aWNhIE5ldWUnLCBzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjMyMCI+5YrogPC90ZXh0Pjwvc3ZnPg==", "sizes": "192x192" }]
     }
   ],
   "lang": "zh-CN",
