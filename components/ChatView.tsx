@@ -97,8 +97,9 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
       console.error("Chat Error:", err);
       let errorText = "系统连接中断，请检查网络环境。";
       
-      if (err.message === "AUTH_KEY_ERROR") {
-        errorText = "检测到加密密钥连接失败。这可能是因为部署环境尚未同步。请点击下方按钮重新同步您的专家密钥。";
+      if (err.message && err.message.includes("AUTH_KEY_ERROR")) {
+        // 使用来自服务层的更友好的错误描述
+        errorText = err.message.split(": ")[1] || "检测到加密密钥连接失败。请点击下方按钮重新同步您的专家密钥。";
       }
       
       setMessages(prev => [...prev, { 
@@ -154,12 +155,12 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
               {msg.image && <img src={`data:${msg.image.mimeType};base64,${msg.image.data}`} className="w-48 rounded-2xl border border-white/10 shadow-lg" />}
               <div className={`p-5 rounded-[28px] text-[13px] leading-relaxed transition-all ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-slate-900 text-slate-200 border border-white/5 rounded-tl-none shadow-xl'}`}>
                 {msg.content}
-                {msg.content.includes("重新同步您的专家密钥") && (
+                {(msg.content.includes("重新同步您的专家密钥") || msg.content.includes("点亮灯塔") || msg.content.includes("加密信道连接失效")) && (
                    <button 
                     onClick={async () => { /* @ts-ignore */ if(window.aistudio) await window.aistudio.openSelectKey(); }}
-                    className="mt-4 w-full bg-white text-slate-900 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+                    className="mt-4 w-full bg-white text-slate-900 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl"
                    >
-                     点亮灯塔 (重新同步)
+                     点亮灯塔 (立即重新授权)
                    </button>
                 )}
                 {msg.sources && msg.sources.length > 0 && (
@@ -182,11 +183,11 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
           <button onClick={startCamera} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-slate-800 text-slate-400">📷</button>
           <button onClick={toggleListening} className={`w-10 h-10 rounded-2xl flex items-center justify-center ${isListening ? 'bg-indigo-600 text-white animate-pulse' : 'bg-slate-800 text-slate-400'}`}>🎙️</button>
           <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()} placeholder="输入困境，AI 为您陪伴..." className="flex-1 bg-transparent border-none outline-none text-white text-sm px-2" />
-          <button onClick={handleSend} disabled={loading} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-indigo-600 text-white disabled:opacity-30">🚀</button>
+          <button handleSend onClick={handleSend} disabled={loading} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-indigo-600 text-white disabled:opacity-30">🚀</button>
         </div>
       </div>
 
-      {showCamera && <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center"><video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" /><div className="absolute bottom-16 flex gap-10"><button onClick={stopCamera} className="w-16 h-16 bg-white/10 rounded-full text-white text-xs">取消</button><button onClick={capturePhoto} className="w-20 h-20 bg-white rounded-full border-4 border-indigo-500"></button></div></div>}
+      {showCamera && <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center"><video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" /><div className="absolute bottom-16 flex gap-10"><button onClick={stopCamera} className="w-16 h-16 bg-white/10 rounded-full text-white text-xs">取消</button><button capturePhoto onClick={capturePhoto} className="w-20 h-20 bg-white rounded-full border-4 border-indigo-500"></button></div></div>}
     </div>
   );
 };

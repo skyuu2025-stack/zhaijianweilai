@@ -22,7 +22,8 @@ export class GeminiService {
    * 按照官方指南：每次调用前创建新实例以获取最新密钥
    */
   private getAiInstance() {
-    return new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY || "";
+    return new GoogleGenAI({ apiKey });
   }
 
   async sendMessage(
@@ -67,13 +68,14 @@ export class GeminiService {
       const errorMsg = error.message?.toLowerCase() || "";
       
       // 精准识别鉴权失败，触发官方选 Key 对话框
-      if (errorMsg.includes("api_key") || errorMsg.includes("not found") || errorMsg.includes("unauthorized") || errorMsg.includes("401") || errorMsg.includes("403")) {
+      if (errorMsg.includes("api_key") || errorMsg.includes("not found") || errorMsg.includes("unauthorized") || errorMsg.includes("401") || errorMsg.includes("403") || errorMsg.includes("invalid")) {
         // @ts-ignore
         if (window.aistudio) {
            // @ts-ignore
-           await window.aistudio.openSelectKey();
+           window.aistudio.openSelectKey();
         }
-        throw new Error("AUTH_KEY_ERROR");
+        // 返回一个包含操作建议的自定义错误
+        throw new Error("AUTH_KEY_ERROR: 检测到加密信道连接失效。请点击对话框中的‘点亮灯塔’按钮重新授权，或检查您的 API 密钥设置。");
       }
       throw error;
     }
@@ -90,11 +92,11 @@ export class GeminiService {
       return response.text || "我们一直在你身边。";
     } catch (e: any) {
       const errorMsg = e.message?.toLowerCase() || "";
-      if (errorMsg.includes("401") || errorMsg.includes("api_key")) {
+      if (errorMsg.includes("401") || errorMsg.includes("api_key") || errorMsg.includes("invalid")) {
          // @ts-ignore
-         if (window.aistudio) await window.aistudio.openSelectKey();
+         if (window.aistudio) window.aistudio.openSelectKey();
       }
-      return "无论黑暗多久，灯塔始终为你亮着。";
+      return "无论黑暗多久，灯塔始终为你亮着。请重新同步您的专家密钥以恢复深度审计。";
     }
   }
 
@@ -110,9 +112,10 @@ export class GeminiService {
       return { text: response.text || "（对方保持了沉默）", modelUsed: 'gemini-3-flash-preview' };
     } catch (error: any) {
       const errorMsg = error.message?.toLowerCase() || "";
-      if (errorMsg.includes("401") || errorMsg.includes("api_key")) {
+      if (errorMsg.includes("401") || errorMsg.includes("api_key") || errorMsg.includes("invalid")) {
          // @ts-ignore
-         if (window.aistudio) await window.aistudio.openSelectKey();
+         if (window.aistudio) window.aistudio.openSelectKey();
+         throw new Error("AUTH_KEY_ERROR: 协商信道已断开。请点击‘点亮灯塔’重新配置密钥。");
       }
       throw error;
     }
