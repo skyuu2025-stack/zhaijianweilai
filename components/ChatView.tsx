@@ -16,6 +16,8 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
   const [loading, setLoading] = useState(false);
   const [capturedImage, setCapturedImage] = useState<{ data: string, mimeType: string } | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [tempImage, setTempImage] = useState<{ data: string, mimeType: string } | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [interimText, setInterimText] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -59,14 +61,14 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
   }, [messages, loading]);
 
   useEffect(() => {
-    if (showCamera && stream && videoRef.current) {
+    if (showCamera && !isPreviewing && stream && videoRef.current) {
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch(err => {
         console.error("Video play error:", err);
         setErrorMsg("无法启动实时预览，请尝试直接上传。");
       });
     }
-  }, [showCamera, stream]);
+  }, [showCamera, isPreviewing, stream]);
 
   const handleSend = async () => {
     if ((!input.trim() && !capturedImage) || loading) return;
@@ -129,6 +131,8 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
       });
       setStream(ms);
       setShowCamera(true);
+      setIsPreviewing(false);
+      setTempImage(null);
     } catch (err) {
       console.error("Camera access error:", err);
       fileInputRef.current?.click(); 
@@ -141,6 +145,8 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
       setStream(null);
     }
     setShowCamera(false); 
+    setIsPreviewing(false);
+    setTempImage(null);
   };
 
   const capturePhoto = () => {
@@ -153,10 +159,22 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
       if (ctx) {
         ctx.drawImage(v, 0, 0);
         const dataUrl = c.toDataURL('image/jpeg', 0.8);
-        setCapturedImage({ data: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
-        stopCamera();
+        setTempImage({ data: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
+        setIsPreviewing(true);
       }
     }
+  };
+
+  const confirmPhoto = () => {
+    if (tempImage) {
+      setCapturedImage(tempImage);
+      stopCamera();
+    }
+  };
+
+  const retakePhoto = () => {
+    setTempImage(null);
+    setIsPreviewing(false);
   };
 
   return (
@@ -222,15 +240,31 @@ const ChatView: React.FC<{ isPro: boolean, onNavigateToPro: () => void }> = ({ i
       </div>
 
       {showCamera && (
-        <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center">
-          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-          <div className="absolute bottom-16 flex gap-10 items-center">
-            <button onClick={stopCamera} className="w-16 h-16 bg-white/10 rounded-full text-white text-xs font-black backdrop-blur-md">取消</button>
-            <button onClick={capturePhoto} className="w-24 h-24 bg-white rounded-full border-4 border-indigo-500 shadow-2xl active:scale-90 transition-all flex items-center justify-center">
-               <div className="w-16 h-16 rounded-full border-2 border-slate-200"></div>
-            </button>
-            <div className="w-16"></div>
-          </div>
+        <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center animate-fadeIn">
+          {!isPreviewing ? (
+            <>
+              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+              <div className="absolute bottom-16 flex gap-10 items-center justify-center w-full px-10">
+                <button onClick={stopCamera} className="w-16 h-16 bg-white/10 rounded-full text-white text-[10px] font-black backdrop-blur-md uppercase tracking-widest border border-white/5">取消</button>
+                <button onClick={capturePhoto} className="w-24 h-24 bg-white rounded-full border-4 border-indigo-500 shadow-[0_0_40px_rgba(79,70,229,0.5)] active:scale-90 transition-all flex items-center justify-center">
+                   <div className="w-16 h-16 rounded-full border-2 border-slate-200"></div>
+                </button>
+                <div className="w-16"></div>
+              </div>
+            </>
+          ) : (
+            <>
+              <img src={`data:${tempImage?.mimeType};base64,${tempImage?.data}`} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none"></div>
+              <div className="absolute bottom-16 flex gap-6 items-center justify-center w-full px-8 animate-fadeIn">
+                <button onClick={retakePhoto} className="flex-1 bg-white/10 border border-white/20 backdrop-blur-xl text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest active:scale-95 transition-all">重拍</button>
+                <button onClick={confirmPhoto} className="flex-1 bg-indigo-600 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-500/30 active:scale-95 transition-all">确认使用</button>
+              </div>
+              <div className="absolute top-16 left-0 right-0 text-center">
+                <p className="text-white text-xs font-black uppercase tracking-[0.4em] drop-shadow-lg">预览照片</p>
+              </div>
+            </>
+          )}
           {errorMsg && <div className="absolute top-10 bg-red-500 text-white px-4 py-2 rounded-full text-xs">{errorMsg}</div>}
         </div>
       )}
