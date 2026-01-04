@@ -1,11 +1,11 @@
 
 {
   "short_name": "债策",
-  "name": "债策 - 心理陪伴与破局助手",
-  "description": "专为中国负债群体设计的心理陪伴、财务审计与法律避坑 AI 助手。采用端到端加密技术保护隐私，提供债务雪球清偿计划、法律话术模拟、及基于 Gemini 3 Pro 的高精度合同风险审计。",
+  "name": "债策 - 跨越苦海的破局助手",
+  "description": "债策：采用端到端加密技术的财务审计助手。专为中国负债群体设计，提供避坑指南、法律防御与心理陪伴。跨越负债苦海，抵达自由星辰。",
   "icons": [
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMCIgZmlsbD0iIzA2MGIyNiIvPjxwYXRoIGQ9Ik0yNDAgNDEwIEwyNTAgMTkwIEgyNjIgTDI3MiA0MTAgWiIgZmlsbD0id2hpdGUiLz48cGF0aCBkPSJNMjI1IDE4MCBIMjg3IEwyNzAgMTUwIEMyNjUgMTQwIDIzNSAxNDAgMjMwIDE1MCBMMjI1IDE4MCBaIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjE2MCIgcj0iNDAiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuMSIgc3R5bGU9ImZpbHRlcjpibHVyKDE2cHgpIi8+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMTYwIiByPSI4IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==",
+      "src": "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMCIgZmlsbD0iIzAyMDYxNyIvPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0ic2t5IiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0ZjQ2ZTUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMjA2MTciLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjIzMCIgZmlsbD0idXJsKCNza3kpIi8+PGNpcmNsZSBjeD0iMTgwIiBjeT0iMTUwIiByPSIzIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjM1MCIgY3k9IjIwMCIgcj0iMiIgZmlsbD0id2hpdGUiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxMjAiIHI9IjQiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTUwIDM1MCBRMTUwIDMzMCAyNTYgMzUwIFEzNTAgMzcwIDQ2MCAzNTAgVjQ2MCBINDUwIFoiIGZpbGw9IiM2MzY2ZjEiIGZpbGwtb3BhY2l0eT0iMC44Ii8+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjAwIiByPSIyMCIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iMC45Ii8+PC9zdmc+",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
@@ -14,14 +14,14 @@
   "start_url": "/?utm_source=pwa",
   "display": "standalone",
   "theme_color": "#020617",
-  "background_color": "#060b26",
+  "background_color": "#020617",
   "orientation": "portrait",
   "categories": ["finance", "productivity", "social"],
   "shortcuts": [
     {
-      "name": "AI 风险审计",
+      "name": "星海陪伴",
       "url": "/?tab=chat",
-      "icons": [{ "src": "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMCIgZmlsbD0iIzA2MGIyNiIvPjxwYXRoIGQ9Ik0yNDAgNDEwIEwyNTAgMTkwIEgyNjIgTDI3MiA0MTAgWiIgZmlsbD0id2hpdGUiLz48cGF0aCBkPSJNMjI1IDE4MCBIMjg3IEwyNzAgMTUwIEMyNjUgMTQwIDIzNSAxNDAgMjMwIDE1MCBMMjI1IDE4MCBaIiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==", "sizes": "192x192" }]
+      "icons": [{ "src": "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMCIgZmlsbD0iIzAyMDYxNyIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjAwIiBmaWxsPSIjNGY0NmU1Ii8+PC9zdmc+", "sizes": "192x192" }]
     }
   ],
   "lang": "zh-CN",

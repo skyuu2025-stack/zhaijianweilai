@@ -9,7 +9,8 @@ import SubscriptionView from './components/SubscriptionView.tsx';
 import VoiceCompanionView from './components/VoiceCompanionView.tsx';
 
 /**
- * SpiritualBeacon: 神秘灯塔 LOGO
+ * SpiritualBeacon: 神秘灯塔内部 UI 标识
+ * 保持应用内的统一视觉灵魂：在至暗时刻提灯的灯塔
  */
 const SpiritualBeacon: React.FC<{ className?: string }> = ({ className }) => (
   <div className={`relative flex items-center justify-center ${className}`}>
