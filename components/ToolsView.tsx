@@ -19,34 +19,52 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [auditResult, setAuditResult] = useState<string>('');
   const [pendingImages, setPendingImages] = useState<{ data: string, mimeType: string }[]>([]);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
 
+  // 确保视频流正确绑定到 DOM 元素
   useEffect(() => {
+    let active = true;
     if (showCameraModal && !isPreviewing && stream && videoRef.current) {
-      videoRef.current.srcObject = stream;
-      videoRef.current.play().catch(err => {
-        console.error("Camera play failed:", err);
-      });
+      const video = videoRef.current;
+      if (video.srcObject !== stream) {
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          if (active) video.play().catch(err => console.error("Video play failed", err));
+        };
+      }
     }
+    return () => { active = false; };
   }, [showCameraModal, isPreviewing, stream]);
 
   const startCamera = async () => {
+    setCameraError(null);
     try {
+      // 使用更具兼容性的约束条件
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }, 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }, 
         audio: false 
       });
       setStream(mediaStream);
       setShowCameraModal(true);
       setIsPreviewing(false);
       setTempImage(null);
-    } catch (err) {
-      console.error("Camera error:", err);
-      fileInputRef.current?.click();
+    } catch (err: any) {
+      console.error("Camera access error:", err);
+      // 如果相机不可用，尝试唤起系统相册
+      if (fileInputRef.current) {
+        fileInputRef.current.click();
+      } else {
+        setCameraError("无法访问摄像头，请检查权限设置。");
+      }
     }
   };
 
@@ -57,18 +75,23 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
     }
     setShowCameraModal(false);
     setIsPreviewing(false);
+    setCameraError(null);
   };
 
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
+      
+      // 检查视频流是否已就绪
+      if (video.videoWidth === 0 || video.videoHeight === 0) return;
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
         setTempImage({ data: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
         setIsPreviewing(true);
       }
@@ -80,7 +103,7 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       setPendingImages(prev => [...prev, tempImage]);
       setIsPreviewing(false);
       setTempImage(null);
-      // 在多图模式下，我们保持相机开启以便继续拍摄
+      // 保持相机开启状态，继续拍摄下一张
     }
   };
 
@@ -93,9 +116,11 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
     if (pendingImages.length === 0) return;
     setIsAnalyzing(true);
     setShowAnalysisModal(true);
+    setAuditResult("正在启动加密审计引擎，分析多份资料关联性...");
+    
     try {
       const response = await geminiService.sendMessage([], 
-        "请深度审计这些图片中的法律风险。重点分析：综合年化利率是否超标、是否存在暴力催收条款、是否有隐藏服务费。", 
+        "请深度审计这些图片中的法律风险。重点分析：综合年化利率是否超标、是否存在暴力催收条款、是否有隐藏服务费。请给出结构化的破局建议。", 
         { images: pendingImages, isDeepMode: true }
       );
       setAuditResult(response.text);
@@ -121,14 +146,21 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
 
   return (
     <div className="space-y-10 pb-40 animate-fadeIn px-2">
-      <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={(e) => {
-        const files = Array.from(e.target.files || []) as File[];
-        files.forEach(f => {
-          const r = new FileReader();
-          r.onload = (ev) => setPendingImages(prev => [...prev, { data: (ev.target?.result as string).split(',')[1], mimeType: f.type }]);
-          r.readAsDataURL(f);
-        });
-      }} />
+      <input 
+        type="file" 
+        multiple 
+        accept="image/*" 
+        className="hidden" 
+        ref={fileInputRef} 
+        onChange={(e) => {
+          const files = Array.from(e.target.files || []) as File[];
+          files.forEach(f => {
+            const r = new FileReader();
+            r.onload = (ev) => setPendingImages(prev => [...prev, { data: (ev.target?.result as string).split(',')[1], mimeType: f.type }]);
+            r.readAsDataURL(f);
+          });
+        }} 
+      />
       <canvas ref={canvasRef} className="hidden" />
 
       {/* 风险探测模块 */}
@@ -147,9 +179,9 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
           {pendingImages.length > 0 && (
              <div className="flex gap-2 overflow-x-auto pb-2 scroll-hide">
                {pendingImages.map((img, i) => (
-                 <div key={i} className="relative shrink-0">
+                 <div key={i} className="relative shrink-0 animate-fadeIn">
                     <img src={`data:${img.mimeType};base64,${img.data}`} className="w-16 h-16 rounded-xl object-cover border border-slate-200" />
-                    <button onClick={() => setPendingImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[8px] flex items-center justify-center">✕</button>
+                    <button onClick={() => setPendingImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center shadow-lg">✕</button>
                  </div>
                ))}
              </div>
@@ -163,11 +195,13 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
           </div>
 
           <div className="flex gap-3">
-             <button onClick={startCamera} className="flex-1 bg-slate-900 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
-               拍摄资料
+             <button onClick={startCamera} className="flex-1 bg-slate-900 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2">
+               <span>📸</span> 拍摄资料
              </button>
              {pendingImages.length > 0 && (
-               <button onClick={runMultiAudit} className="flex-1 bg-orange-500 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-lg">开始审计</button>
+               <button onClick={runMultiAudit} className="flex-1 bg-orange-500 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-lg animate-labelJump">
+                 开始审计报告
+               </button>
              )}
           </div>
         </div>
@@ -194,32 +228,66 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
         <div className="fixed inset-0 z-[600] bg-black flex flex-col items-center animate-fadeIn">
           {!isPreviewing ? (
             <>
-              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline 
+                muted 
+                className="w-full h-full object-cover" 
+              />
               <div className="absolute top-10 left-0 right-0 px-6 flex items-center justify-between z-10">
-                <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                  <span className="text-white text-[9px] font-black uppercase tracking-widest">连拍模式：已选 {pendingImages.length} 张</span>
+                <div className="bg-black/60 backdrop-blur-xl px-5 py-2.5 rounded-full border border-white/20 flex items-center gap-3 shadow-2xl">
+                  <div className={`w-2 h-2 rounded-full ${pendingImages.length > 0 ? 'bg-orange-500 animate-pulse' : 'bg-white/30'}`}></div>
+                  <span className="text-white text-[10px] font-black uppercase tracking-widest">已选资料：{pendingImages.length} 份</span>
                 </div>
-                <button onClick={stopCamera} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full text-white text-[10px] font-black border border-white/10 uppercase">完成</button>
+                <button 
+                  onClick={stopCamera} 
+                  className="bg-white/20 backdrop-blur-xl text-white px-5 py-2.5 rounded-full text-[10px] font-black border border-white/20 uppercase tracking-widest active:scale-90"
+                >
+                  {pendingImages.length > 0 ? '完成录入' : '取消'}
+                </button>
               </div>
-              <div className="absolute bottom-16 w-full px-10 flex items-center justify-center">
-                <button onClick={capturePhoto} className="w-24 h-24 bg-white rounded-full border-[6px] border-orange-500/50 flex items-center justify-center active:scale-90 shadow-2xl transition-all">
+              
+              <div className="absolute bottom-16 w-full px-10 flex flex-col items-center gap-6">
+                {pendingImages.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto max-w-full scroll-hide animate-fadeIn">
+                    {pendingImages.map((img, i) => (
+                      <div key={i} className="w-10 h-10 rounded-lg border border-white/30 overflow-hidden shrink-0 shadow-lg">
+                        <img src={`data:${img.mimeType};base64,${img.data}`} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button 
+                  onClick={capturePhoto} 
+                  className="w-24 h-24 bg-white rounded-full border-[6px] border-orange-500/50 flex items-center justify-center active:scale-90 shadow-[0_0_50px_rgba(249,115,22,0.4)] transition-all"
+                >
                   <div className="w-16 h-16 bg-white border-2 border-slate-200 rounded-full"></div>
                 </button>
               </div>
             </>
           ) : (
-            <>
+            <div className="relative w-full h-full flex flex-col animate-fadeIn">
               <img src={`data:${tempImage?.mimeType};base64,${tempImage?.data}`} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none"></div>
-              <div className="absolute bottom-16 flex gap-6 items-center justify-center w-full px-8 animate-fadeIn">
-                <button onClick={retakePhoto} className="flex-1 bg-white/10 border border-white/20 backdrop-blur-xl text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest active:scale-95 transition-all">重拍</button>
-                <button onClick={confirmPhoto} className="flex-1 bg-orange-500 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-orange-500/30 active:scale-95 transition-all">确认添加</button>
+              <div className="absolute bottom-16 flex gap-6 items-center justify-center w-full px-8">
+                <button onClick={retakePhoto} className="flex-1 bg-white/10 border border-white/20 backdrop-blur-xl text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
+                  重拍
+                </button>
+                <button onClick={confirmPhoto} className="flex-1 bg-orange-500 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-orange-500/30 active:scale-95 transition-all">
+                  确认添加
+                </button>
               </div>
               <div className="absolute top-16 left-0 right-0 text-center">
                 <p className="text-white text-xs font-black uppercase tracking-[0.4em] drop-shadow-lg">检查资料清晰度</p>
               </div>
-            </>
+            </div>
+          )}
+          {cameraError && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white p-6 rounded-[32px] text-center space-y-4 shadow-2xl animate-labelJump">
+               <p className="text-sm font-black">{cameraError}</p>
+               <button onClick={stopCamera} className="bg-white/20 px-6 py-2 rounded-full text-[10px] font-black uppercase">关闭</button>
+            </div>
           )}
         </div>
       )}
@@ -227,16 +295,23 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       {/* 分析结果 Modal */}
       {showAnalysisModal && (
         <div className="fixed inset-0 z-[700] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-3xl">
-           <div className="bg-white rounded-[44px] p-8 w-full max-w-[420px] shadow-2xl space-y-6 overflow-y-auto max-h-[80vh]">
-              <div className="flex justify-between items-center border-b border-slate-50 pb-4">
-                 <h3 className="text-xl font-black text-slate-900">审计报告</h3>
-                 <button onClick={() => setShowAnalysisModal(false)} className="text-slate-300">✕</button>
+           <div className="bg-white rounded-[44px] p-8 w-full max-w-[420px] shadow-2xl space-y-6 overflow-hidden flex flex-col max-h-[85vh]">
+              <div className="flex justify-between items-center border-b border-slate-50 pb-4 shrink-0">
+                 <h3 className="text-xl font-black text-slate-900">加密审计报告</h3>
+                 <button onClick={() => setShowAnalysisModal(false)} className="text-slate-300 p-2">✕</button>
               </div>
-              <div className="text-[13px] text-slate-600 leading-relaxed font-medium whitespace-pre-wrap">
-                 {isAnalyzing ? "AI 正在逐行扫描法务风险..." : auditResult}
+              <div className="text-[13px] text-slate-600 leading-relaxed font-medium whitespace-pre-wrap overflow-y-auto scroll-hide">
+                 {isAnalyzing ? (
+                   <div className="flex flex-col items-center justify-center py-20 gap-6">
+                      <div className="w-12 h-12 border-4 border-slate-100 border-t-orange-500 rounded-full animate-spin"></div>
+                      <p className="text-slate-400 font-black animate-pulse">AI 正在逐行扫描法务风险...</p>
+                   </div>
+                 ) : auditResult}
               </div>
               
-              <button onClick={() => setShowAnalysisModal(false)} className="w-full bg-slate-900 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest">关闭报告</button>
+              <button onClick={() => setShowAnalysisModal(false)} className="w-full bg-slate-900 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest shadow-xl shrink-0 active:scale-95 transition-all">
+                关闭报告
+              </button>
            </div>
         </div>
       )}
