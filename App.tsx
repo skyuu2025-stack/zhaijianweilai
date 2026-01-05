@@ -103,7 +103,7 @@ const App: React.FC = () => {
                 <span className="text-spiritual-shine">债策</span>
               </h1>
               <div className="flex flex-col items-center justify-center gap-1">
-                <p className="text-[11px] text-slate-200 font-black tracking-[0.6em] uppercase">黑暗中提灯 · 废墟中重建</p>
+                <p className="text-[11px] text-slate-200 font-black tracking-[0.6em] uppercase">星辰债策 · 黑暗中提灯 · 废墟中重建</p>
                 <div className="h-[2px] w-12 bg-indigo-500/50 rounded-full mt-2"></div>
               </div>
             </div>
@@ -122,12 +122,12 @@ const App: React.FC = () => {
                <SpiritualBeacon className="w-16 h-16" />
             </div>
             <div className="space-y-3">
-              <h3 className="text-2xl font-black text-slate-900">最隐秘的陪伴</h3>
+              <h3 className="text-2xl font-black text-slate-900">债策 - 最隐秘的陪伴</h3>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                在这里，您的故事将被灯塔照亮并完全加密。我们为您提供破局的工具与心理的支撑。
+                在这里，您的故事将被灯塔照亮并完全加密。星辰债策为您提供专业的债务审计工具与深度的心理慰藉。
               </p>
             </div>
-            <button onClick={() => { localStorage.setItem('privacy_agreed', 'true'); setPrivacyAgreed(true); }} className="w-full bg-slate-900 text-white py-5 rounded-[28px] font-black text-xs uppercase tracking-widest shadow-xl">接受陪伴并进入</button>
+            <button onClick={() => { localStorage.setItem('privacy_agreed', 'true'); setPrivacyAgreed(true); }} className="w-full bg-slate-900 text-white py-5 rounded-[28px] font-black text-xs uppercase tracking-widest shadow-xl">开启解债破局之旅</button>
           </div>
         </div>
       )}
@@ -137,14 +137,14 @@ const App: React.FC = () => {
           <SpiritualBeacon className="w-10 h-10" />
           <div className="flex flex-col">
             <h1 className="text-xl font-black text-white tracking-tighter">债策</h1>
-            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-spiritual-shine">黑暗中提灯 · 废墟中重建</span>
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-spiritual-shine">星辰债策 · 逾期协商话术 · 法律防御</span>
           </div>
         </div>
         <button 
           onClick={() => setActiveTab(AppTab.PRO)} 
           className={`text-[9px] px-4 py-2 rounded-xl font-black uppercase transition-all shadow-lg ${userStatus.isLifetimeFree ? 'bg-amber-500 text-amber-950 shadow-amber-500/20' : userStatus.isPro ? 'bg-emerald-500 text-emerald-950 shadow-emerald-500/20' : 'bg-indigo-600 shadow-indigo-500/20'}`}
         >
-          {userStatus.isLifetimeFree ? '终生荣誉' : userStatus.isPro ? '专家模式' : '升级破局'}
+          {userStatus.isLifetimeFree ? '终生荣誉' : userStatus.isPro ? '专家模式' : '升级专家版'}
         </button>
       </header>
 
