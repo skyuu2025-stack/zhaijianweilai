@@ -114,7 +114,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#020617] text-slate-100 max-w-md mx-auto relative overflow-hidden shadow-2xl font-sans">
+    <div className="flex flex-col h-[100dvh] bg-[#020617] text-slate-100 max-w-md mx-auto relative overflow-hidden shadow-2xl font-sans">
       {!privacyAgreed && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-950/98 backdrop-blur-3xl animate-fadeIn">
           <div className="bg-white rounded-[48px] p-10 w-full max-sm shadow-2xl space-y-8 text-center">
@@ -148,7 +148,7 @@ const App: React.FC = () => {
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 pt-4 scroll-hide relative">
+      <main className="flex-1 overflow-y-auto px-4 pt-4 scroll-hide relative pb-32">
         {activeTab === AppTab.HOME && <HomeView onStartChat={() => setActiveTab(AppTab.CHAT)} userStatus={userStatus} onShare={handleRefShare} onSetLifetimeFree={handleUpdateStatus} />}
         {activeTab === AppTab.CHAT && <ChatView isPro={userStatus.isPro} onNavigateToPro={() => setActiveTab(AppTab.PRO)} />}
         {activeTab === AppTab.HEAL && <VoiceCompanionView />}

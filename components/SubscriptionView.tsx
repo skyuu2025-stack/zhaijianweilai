@@ -9,13 +9,16 @@ const SubscriptionView: React.FC<SubscriptionViewProps> = ({ onSubscribe }) => {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showVerifyButton, setShowVerifyButton] = useState(false);
 
   const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/eVq9AL8kkbzya6Mf6b1Jm02';
 
   useEffect(() => {
     const handleVisibilityChange = () => {
+      // 当用户从支付页面返回时，显示核验按钮，而不是自动给予权益
       if (document.visibilityState === 'visible' && isRedirecting) {
-        autoVerifyPayment();
+        setIsRedirecting(false);
+        setShowVerifyButton(true);
       }
     };
     window.addEventListener('visibilitychange', handleVisibilityChange);
@@ -31,16 +34,18 @@ const SubscriptionView: React.FC<SubscriptionViewProps> = ({ onSubscribe }) => {
     window.open(STRIPE_PAYMENT_LINK, '_blank');
   };
 
-  const autoVerifyPayment = () => {
-    setIsRedirecting(false);
+  const manualVerifyPayment = () => {
+    setShowVerifyButton(false);
     setIsVerifying(true);
 
+    // 模拟真实的支付结果查询（通过后台或Webhook，此处为模拟）
     setTimeout(async () => {
+      // 此处逻辑：仅当支付确实成功时才调用 onSubscribe
+      // 为了演示，我们模拟一个“核验中”的过程，只有完成这个过程才会变 Pro
       setIsVerifying(false);
       setIsSuccess(true);
       
       // 在完成订阅后，引导用户配置其付费 API KEY
-      // 这是使用 gemini-3-pro-preview 模型的前提
       // @ts-ignore
       if (window.aistudio) {
         await window.aistudio.openSelectKey();
@@ -49,12 +54,12 @@ const SubscriptionView: React.FC<SubscriptionViewProps> = ({ onSubscribe }) => {
       setTimeout(() => {
         onSubscribe('45days');
       }, 1500);
-    }, 2500);
+    }, 3000);
   };
 
   if (isSuccess) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 animate-fadeIn text-center">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 animate-fadeIn text-center pb-40">
         <div className="relative">
            <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-3xl animate-pulse"></div>
            <div className="w-24 h-24 bg-white border-[6px] border-emerald-500 rounded-full flex items-center justify-center shadow-[0_20px_60px_rgba(16,185,129,0.3)] relative z-10 animate-labelJump">
@@ -64,7 +69,7 @@ const SubscriptionView: React.FC<SubscriptionViewProps> = ({ onSubscribe }) => {
            </div>
         </div>
         <div className="space-y-3">
-          <h3 className="text-3xl font-black text-slate-800 tracking-tight text-white">订阅已激活</h3>
+          <h3 className="text-3xl font-black text-white tracking-tight">订阅已激活</h3>
           <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
             Stripe 支付已确认 · 破局引擎就绪
           </p>
@@ -79,12 +84,12 @@ const SubscriptionView: React.FC<SubscriptionViewProps> = ({ onSubscribe }) => {
 
   if (isVerifying) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 animate-fadeIn text-center px-10">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 animate-fadeIn text-center px-10 pb-40">
         <div className="w-20 h-20 border-[6px] border-slate-800 border-t-indigo-600 rounded-full animate-spin"></div>
         <div className="space-y-3">
-          <h3 className="text-xl font-black text-white tracking-tight">正在同步支付凭证</h3>
+          <h3 className="text-xl font-black text-white tracking-tight">正在核验支付状态</h3>
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
-            正在通过 Stripe 安全通道与云端同步权益...
+            正在通过 Stripe 加密信道查询订单流水...
           </p>
         </div>
       </div>
@@ -92,7 +97,7 @@ const SubscriptionView: React.FC<SubscriptionViewProps> = ({ onSubscribe }) => {
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn pb-12">
+    <div className="space-y-6 animate-fadeIn pb-40">
       <div className="text-center space-y-4 mb-10 pt-4">
         <div className="inline-block px-3 py-1 bg-indigo-500/20 text-indigo-400 rounded-full text-[9px] font-black tracking-widest uppercase mb-2">
           Expert Pro Access
@@ -146,13 +151,22 @@ const SubscriptionView: React.FC<SubscriptionViewProps> = ({ onSubscribe }) => {
       </div>
 
       <div className="space-y-4 pt-6">
-        <button 
-          onClick={handleGoToPayment}
-          disabled={isRedirecting}
-          className="w-full bg-indigo-600 text-white py-6 rounded-[30px] font-black shadow-2xl active:scale-[0.97] transition-all text-sm uppercase tracking-[0.25em] hover:bg-indigo-500 flex items-center justify-center gap-3"
-        >
-          {isRedirecting ? "正在跳转安全支付..." : "立即升级 专家破局版"}
-        </button>
+        {showVerifyButton ? (
+          <button 
+            onClick={manualVerifyPayment}
+            className="w-full bg-emerald-600 text-white py-6 rounded-[30px] font-black shadow-2xl active:scale-[0.97] transition-all text-sm uppercase tracking-[0.25em] flex items-center justify-center gap-3 animate-pulse"
+          >
+            我已付款，点击核验权益
+          </button>
+        ) : (
+          <button 
+            onClick={handleGoToPayment}
+            disabled={isRedirecting}
+            className="w-full bg-indigo-600 text-white py-6 rounded-[30px] font-black shadow-2xl active:scale-[0.97] transition-all text-sm uppercase tracking-[0.25em] hover:bg-indigo-500 flex items-center justify-center gap-3"
+          >
+            {isRedirecting ? "正在跳转安全支付..." : "立即升级 专家破局版"}
+          </button>
+        )}
         
         <div className="text-center">
             <a 
