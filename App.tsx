@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppTab, UserStatus } from './types.ts';
 import HomeView from './components/HomeView.tsx';
@@ -8,10 +7,6 @@ import AssetsView from './components/AssetsView.tsx';
 import SubscriptionView from './components/SubscriptionView.tsx';
 import VoiceCompanionView from './components/VoiceCompanionView.tsx';
 
-/**
- * SpiritualBeacon: 神秘灯塔内部 UI 标识
- * 保持应用内的统一视觉灵魂：在至暗时刻提灯的灯塔
- */
 const SpiritualBeacon: React.FC<{ className?: string }> = ({ className }) => (
   <div className={`relative flex items-center justify-center ${className}`}>
     <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-[50px] animate-pulse"></div>
