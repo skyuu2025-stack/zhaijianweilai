@@ -98,7 +98,7 @@ const App: React.FC = () => {
                 <span className="text-spiritual-shine">债策</span>
               </h1>
               <div className="flex flex-col items-center justify-center gap-1">
-                <p className="text-[11px] text-slate-200 font-black tracking-[0.6em] uppercase">星辰债策 · 黑暗中提灯 · 废墟中重建</p>
+                <p className="text-[11px] text-slate-200 font-black tracking-[0.6em] uppercase">星辰债策 提灯重建</p>
                 <div className="h-[2px] w-12 bg-indigo-500/50 rounded-full mt-2"></div>
               </div>
             </div>
@@ -132,7 +132,7 @@ const App: React.FC = () => {
           <SpiritualBeacon className="w-10 h-10" />
           <div className="flex flex-col">
             <h1 className="text-xl font-black text-white tracking-tighter">债策</h1>
-            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-spiritual-shine">星辰债策 · 逾期协商话术 · 法律防御</span>
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-spiritual-shine">星辰债策 法律防御</span>
           </div>
         </div>
         <button 
