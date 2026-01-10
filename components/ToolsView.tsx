@@ -23,28 +23,12 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [flashActive, setFlashActive] = useState(false);
   
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
 
-  // 监听视频流变化并绑定到 Video 标签
-  useEffect(() => {
-    if (showCameraModal && stream && videoRef.current) {
-      const video = videoRef.current;
-      video.srcObject = stream;
-      video.onloadedmetadata = () => {
-        video.play().catch(err => console.error("Video play failed:", err));
-      };
-    }
-    return () => {
-      if (!showCameraModal && stream) {
-        stream.getTracks().forEach(track => track.stop());
-        setStream(null);
-      }
-    };
-  }, [showCameraModal, stream]);
-
+  // 摄像头权限与流管理
   const startCamera = async () => {
     setCameraError(null);
     try {
@@ -62,7 +46,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       setTempImage(null);
     } catch (err: any) {
       console.error("Camera access error:", err);
-      // 摄像头无法访问时直接呼起文件选择
       fileInputRef.current?.click();
     }
   };
@@ -74,6 +57,7 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
     }
     setShowCameraModal(false);
     setIsPreviewing(false);
+    setTempImage(null);
     setCameraError(null);
   };
 
@@ -84,7 +68,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       
       if (video.videoWidth === 0 || video.videoHeight === 0) return;
 
-      // 视觉快门反馈
       setFlashActive(true);
       setTimeout(() => setFlashActive(false), 150);
 
@@ -103,12 +86,11 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
   const confirmPhoto = () => {
     if (tempImage) {
       setPendingImages(prev => [...prev, tempImage]);
-      setIsPreviewing(false);
       setTempImage(null);
+      setIsPreviewing(false); // 回到摄像模式，继续拍摄下一张
     }
   };
 
-  // Fix: Added missing retakePhoto function
   const retakePhoto = () => {
     setTempImage(null);
     setIsPreviewing(false);
@@ -121,7 +103,6 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       r.onload = (ev) => {
         const base64 = (ev.target?.result as string).split(',')[1];
         setPendingImages(prev => [...prev, { data: base64, mimeType: f.type }]);
-        // 如果是从相机模态框里触发的上传，关闭预览逻辑
         setIsPreviewing(false);
         setTempImage(null);
       };
@@ -291,8 +272,15 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
           
           {!isPreviewing ? (
             <>
+              {/* 使用 Callback Ref 确保元素挂载后立即绑定流，解决条件渲染导致的黑屏 */}
               <video 
-                ref={videoRef}
+                ref={(el) => {
+                  if (el && stream) {
+                    el.srcObject = stream;
+                    el.play().catch(err => console.error("Playback failed", err));
+                  }
+                  videoRef.current = el;
+                }}
                 autoPlay 
                 playsInline 
                 muted 
@@ -326,7 +314,12 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
                   <div className="w-16 h-16 bg-white border-2 border-slate-200 rounded-full"></div>
                 </button>
 
-                <div className="w-14"></div>
+                <button 
+                  onClick={stopCamera}
+                  className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-xs font-black text-white/50 border border-white/10"
+                >
+                  完成
+                </button>
               </div>
             </>
           ) : (
