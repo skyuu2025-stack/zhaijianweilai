@@ -21,11 +21,29 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
   const [pendingImages, setPendingImages] = useState<{ data: string, mimeType: string }[]>([]);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [flashActive, setFlashActive] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
+
+  // 监听视频流变化并绑定到 Video 标签
+  useEffect(() => {
+    if (showCameraModal && stream && videoRef.current) {
+      const video = videoRef.current;
+      video.srcObject = stream;
+      video.onloadedmetadata = () => {
+        video.play().catch(err => console.error("Video play failed:", err));
+      };
+    }
+    return () => {
+      if (!showCameraModal && stream) {
+        stream.getTracks().forEach(track => track.stop());
+        setStream(null);
+      }
+    };
+  }, [showCameraModal, stream]);
 
   const startCamera = async () => {
     setCameraError(null);
@@ -33,8 +51,8 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
         }, 
         audio: false 
       });
@@ -44,11 +62,8 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       setTempImage(null);
     } catch (err: any) {
       console.error("Camera access error:", err);
-      if (fileInputRef.current) {
-        fileInputRef.current.click();
-      } else {
-        setCameraError("无法访问摄像头，请检查权限设置。");
-      }
+      // 摄像头无法访问时直接呼起文件选择
+      fileInputRef.current?.click();
     }
   };
 
@@ -69,12 +84,16 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
       
       if (video.videoWidth === 0 || video.videoHeight === 0) return;
 
+      // 视觉快门反馈
+      setFlashActive(true);
+      setTimeout(() => setFlashActive(false), 150);
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
         setTempImage({ data: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
         setIsPreviewing(true);
       }
@@ -89,15 +108,29 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
     }
   };
 
+  // Fix: Added missing retakePhoto function
   const retakePhoto = () => {
     setTempImage(null);
     setIsPreviewing(false);
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []) as File[];
+    files.forEach(f => {
+      const r = new FileReader();
+      r.onload = (ev) => {
+        const base64 = (ev.target?.result as string).split(',')[1];
+        setPendingImages(prev => [...prev, { data: base64, mimeType: f.type }]);
+        // 如果是从相机模态框里触发的上传，关闭预览逻辑
+        setIsPreviewing(false);
+        setTempImage(null);
+      };
+      r.readAsDataURL(f);
+    });
+  };
+
   const runMultiAudit = async () => {
     if (pendingImages.length === 0) return;
-    
-    // 严格检查：非 Pro 用户禁止进入专家审计
     if (!isPro) {
       setShowUpgradePrompt(true);
       return;
@@ -141,14 +174,7 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
         accept="image/*" 
         className="hidden" 
         ref={fileInputRef} 
-        onChange={(e) => {
-          const files = Array.from(e.target.files || []) as File[];
-          files.forEach(f => {
-            const r = new FileReader();
-            r.onload = (ev) => setPendingImages(prev => [...prev, { data: (ev.target?.result as string).split(',')[1], mimeType: f.type }]);
-            r.readAsDataURL(f);
-          });
-        }} 
+        onChange={handleFileUpload} 
       />
       <canvas ref={canvasRef} className="hidden" />
 
@@ -243,7 +269,7 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
               </div>
               <div className="space-y-3">
                 <button 
-                  onClick={() => { setShowUpgradePrompt(false); /* 这里的逻辑应当是跳转到订阅页 */ window.location.hash = 'pro'; }} 
+                  onClick={() => { setShowUpgradePrompt(false); window.location.hash = 'pro'; }} 
                   className="w-full bg-indigo-600 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest shadow-xl active:scale-95"
                 >
                   前往升级专享
@@ -261,16 +287,12 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
 
       {showCameraModal && (
         <div className="fixed inset-0 z-[600] bg-black flex flex-col items-center animate-fadeIn">
+          {flashActive && <div className="fixed inset-0 bg-white z-[700] animate-fadeOut pointer-events-none"></div>}
+          
           {!isPreviewing ? (
             <>
               <video 
-                ref={(el) => {
-                  if (el && stream && el.srcObject !== stream) {
-                    el.srcObject = stream;
-                    el.play().catch(console.error);
-                  }
-                  (videoRef as any).current = el;
-                }} 
+                ref={videoRef}
                 autoPlay 
                 playsInline 
                 muted 
@@ -279,28 +301,37 @@ const ToolsView: React.FC<{ isPro: boolean }> = ({ isPro }) => {
               <div className="absolute top-10 left-0 right-0 px-6 flex items-center justify-between z-10">
                 <div className="bg-black/60 backdrop-blur-xl px-5 py-2.5 rounded-full border border-white/20 flex items-center gap-3 shadow-2xl">
                   <div className={`w-2 h-2 rounded-full ${pendingImages.length > 0 ? 'bg-orange-500 animate-pulse' : 'bg-white/30'}`}></div>
-                  <span className="text-white text-[10px] font-black uppercase tracking-widest">已选资料：{pendingImages.length} 份</span>
+                  <span className="text-white text-[10px] font-black uppercase tracking-widest">资料库: {pendingImages.length} 份</span>
                 </div>
                 <button 
                   onClick={stopCamera} 
-                  className="bg-white/20 backdrop-blur-xl text-white px-5 py-2.5 rounded-full text-[10px] font-black border border-white/20 uppercase tracking-widest active:scale-90"
+                  className="bg-white/10 backdrop-blur-xl text-white w-10 h-10 rounded-full flex items-center justify-center border border-white/10"
                 >
-                  {pendingImages.length > 0 ? '完成录入' : '取消'}
+                  ✕
                 </button>
               </div>
               
-              <div className="absolute bottom-16 w-full px-10 flex flex-col items-center gap-6">
+              <div className="absolute bottom-16 w-full px-10 flex items-center justify-around gap-6">
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-2xl backdrop-blur-xl border border-white/10 active:scale-90 transition-all"
+                >
+                  🖼️
+                </button>
+
                 <button 
                   onClick={capturePhoto} 
                   className="w-24 h-24 bg-white rounded-full border-[6px] border-orange-500/50 flex items-center justify-center active:scale-90 shadow-[0_0_50px_rgba(249,115,22,0.4)] transition-all"
                 >
                   <div className="w-16 h-16 bg-white border-2 border-slate-200 rounded-full"></div>
                 </button>
+
+                <div className="w-14"></div>
               </div>
             </>
           ) : (
-            <div className="relative w-full h-full flex flex-col animate-fadeIn">
-              <img src={`data:${tempImage?.mimeType};base64,${tempImage?.data}`} className="w-full h-full object-cover" />
+            <div className="relative w-full h-full flex flex-col animate-fadeIn bg-black">
+              <img src={`data:${tempImage?.mimeType};base64,${tempImage?.data}`} className="w-full h-full object-contain" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none"></div>
               <div className="absolute bottom-16 flex gap-6 items-center justify-center w-full px-8">
                 <button onClick={retakePhoto} className="flex-1 bg-white/10 border border-white/20 backdrop-blur-xl text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-widest active:scale-95 transition-all">

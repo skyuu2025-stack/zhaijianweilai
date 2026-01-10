@@ -62,8 +62,9 @@ const VoiceCompanionView: React.FC = () => {
       setConnectionStep(4);
       
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      // Fix: Updated model name to gemini-2.5-flash-native-audio-preview-12-2025
       const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+        model: 'gemini-2.5-flash-native-audio-preview-12-2025',
         callbacks: {
           onopen: () => {
             setIsActive(true);

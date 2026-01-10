@@ -88,9 +88,9 @@ const SnowballView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
            <div className="bg-white rounded-[44px] p-8 w-full max-w-[360px] space-y-6 shadow-2xl">
               <h3 className="text-xl font-black text-slate-900">录入新债务</h3>
               <div className="space-y-4">
-                <input placeholder="项目名称 (如: 某银行信用卡)" value={newDebt.name} onChange={e => setNewDebt({...newDebt, name: e.target.value})} className="w-full bg-slate-50 rounded-2xl px-5 py-4 text-sm outline-none border border-slate-100" />
-                <input type="number" placeholder="剩余待还金额 (¥)" value={newDebt.amount} onChange={e => setNewDebt({...newDebt, amount: e.target.value})} className="w-full bg-slate-50 rounded-2xl px-5 py-4 text-sm outline-none border border-slate-100" />
-                <input type="number" placeholder="真实年化利率 (%)" value={newDebt.rate} onChange={e => setNewDebt({...newDebt, rate: e.target.value})} className="w-full bg-slate-50 rounded-2xl px-5 py-4 text-sm outline-none border border-slate-100" />
+                <input placeholder="项目名称 (如: 某银行信用卡)" value={newDebt.name} onChange={e => setNewDebt({...newDebt, name: e.target.value})} className="w-full bg-slate-50 rounded-2xl px-5 py-4 text-sm text-slate-900 outline-none border border-slate-100" />
+                <input type="number" placeholder="剩余待还金额 (¥)" value={newDebt.amount} onChange={e => setNewDebt({...newDebt, amount: e.target.value})} className="w-full bg-slate-50 rounded-2xl px-5 py-4 text-sm text-slate-900 outline-none border border-slate-100" />
+                <input type="number" placeholder="真实年化利率 (%)" value={newDebt.rate} onChange={e => setNewDebt({...newDebt, rate: e.target.value})} className="w-full bg-slate-50 rounded-2xl px-5 py-4 text-sm text-slate-900 outline-none border border-slate-100" />
               </div>
               <div className="flex gap-3">
                  <button onClick={() => setShowAdd(false)} className="flex-1 py-4 text-slate-400 text-xs font-black uppercase">取消</button>
