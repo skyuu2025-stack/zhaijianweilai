@@ -1,6 +1,7 @@
 {
-  "name": "债策 - 加密解债 AI 专家",
-  "description": "债策：采用端到端加密技术的财务审计助手。专为中国负债群体设计，提供避坑指南、法律防御与心理陪伴。您的所有财务资料与对话均受金融级隐私保护。",
+  "name": "债策",
+  "short_name": "债策",
+  "description": "专业的债务破局与 AI 心理陪伴工具",
   "requestFramePermissions": [
     "microphone",
     "camera"
